@@ -1,0 +1,55 @@
+// nodule: std.recover.registry
+// A **minimal error-class registry** for the Rust-first `std.recover` surface (M-520).
+//
+// In the full Mycelium runtime the shared error-class registry is owned by `std.diag` (M-510,
+// RFC-0013 §4.5). For the Rust-first half we provide a thin, self-contained registry so
+// `std.recover` can be built + tested without depending on `std.diag`'s implementation details.
+// The full `std.diag` registry (M-510 leaf) will supersede this once both crates are complete and
+// integrated; this is not a duplication — it is a scoped contract that flags itself accordingly.
+//
+// X1 invariant: a class is a **name** resolved through the registry — never an evaluated string.
+// @summary: best-effort transpilation via mycelium-transpile (M-873). Declared,
+// unvalidated — no Mycelium parser/typechecker confirms this output; see the
+// accompanying .gap.json for every construct this pass could not express.
+nodule std.recover.registry;
+
+// A registry-resolved error class name (RFC-0013 §4.5 — X1).
+//
+// Opaque by construction: the only way to obtain a [`ClassName`] is through
+// [`ClassRegistry::resolve`], which checks the name exists. This makes "unknown class" a static
+// impossibility once a `ClassName` is in hand.
+pub type ClassName = ClassName(Bytes);
+
+impl Show[ClassName] for ClassName {
+  fn render(x: ClassName) => Bytes =
+    match x { ClassName(p0) => bytes_concat(bytes_concat("ClassName(", render(p0)), ")") };
+};
+
+fn eq_ClassName(a: ClassName, b: ClassName) => Binary{1} =
+    match a { ClassName(p0) => match b { ClassName(q0) => bytes_eq(p0, q0) } };
+
+impl Ord3[ClassName] for ClassName {
+  fn cmp(a: ClassName, b: ClassName) => Binary{8} =
+    match a { ClassName(p0) => match b { ClassName(q0) => cmp(p0, q0) } };
+};
+
+fn hash_ClassName(a: ClassName) => Bytes =
+    match a { ClassName(p0) => hash_blake3(bytes_concat("ClassName", hash_blake3(p0))) };
+
+impl ClassName {
+  // The string representation of this name (for display and hashing only — not for equality).
+  fn as_str(self: ClassName) => Bytes = (match self { ClassName(p0) => p0 });
+};
+
+// The explicit error returned by [`ClassRegistry::resolve`] when a name is not registered (X1).
+//
+// This is a configuration error, not a runtime panic — the caller must handle it explicitly.
+pub type UnknownClass = UnknownClass(Bytes);
+
+impl Show[UnknownClass] for UnknownClass {
+  fn render(x: UnknownClass) => Bytes =
+    match x { UnknownClass(p0) => bytes_concat(bytes_concat("UnknownClass(", render(p0)), ")") };
+};
+
+fn eq_UnknownClass(a: UnknownClass, b: UnknownClass) => Binary{1} =
+    match a { UnknownClass(p0) => match b { UnknownClass(q0) => bytes_eq(p0, q0) } };

@@ -1,0 +1,119 @@
+{
+  "source": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/outcome.rs",
+  "emitted_items": [
+    "Outcome"
+  ],
+  "gaps": [
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/outcome.rs",
+      "line": 8,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "use mycelium_core :: GuaranteeStrength ;",
+      "reason": "`use mycelium_core::GuaranteeStrength` — `mycelium_core` is not a sibling module OR sibling phylum transpiled in this same batch (an external crate, `std`, or simply out of this batch's target set). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/outcome.rs",
+      "line": 9,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "use mycelium_diag :: Diag ;",
+      "reason": "`use mycelium_diag::Diag` — `mycelium_diag` is not a sibling module OR sibling phylum transpiled in this same batch (an external crate, `std`, or simply out of this batch's target set). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/outcome.rs",
+      "line": 11,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "use crate :: policy :: PolicyRef ;",
+      "reason": "`use policy::PolicyRef` — `PolicyRef` is not among sibling `policy`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/outcome.rs",
+      "line": 13,
+      "col": 1,
+      "category": "DeriveAttr",
+      "rust_construct": "DeriveAttr",
+      "snippet": "# [doc = \" The input result sum `Ok(T) | Err(E)` (RFC-0014 §4.1).\"] # [doc = \"\"] # [doc = \" Errors propagate by default — there is no silent unwinding; an `Err` must be explicitly acted\"] # [doc = \" on by a recovery policy or it continues to surface.\"] # [doc = \"\"] # [doc = \" This is the **input** type to [`crate::handle`] and `crate::recover`.  The `E` error payload\"] # [doc = \" should carry a [`Diag`] diagnostic record per FR-R5.\"] # [derive (Debug , Clone , PartialEq)] pub enum Outcome < T , E > { # [doc = \" The operation succeeded.\"] Ok (T) , # [doc = \" The operation failed with an explicit propagating error (never a silent unwind).\"] Err (E) , }",
+      "reason": "enum `Outcome` derive(Debug): generic enum — a derived Show impl for a generic type needs DN-130's generic-trait-instance mechanism, out of this leaf's scope (ONESHOT C2 / DN-128 enum half)",
+      "item_name": "Outcome"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/outcome.rs",
+      "line": 13,
+      "col": 1,
+      "category": "DeriveSatisfied",
+      "rust_construct": "DeriveSatisfied",
+      "snippet": "# [doc = \" The input result sum `Ok(T) | Err(E)` (RFC-0014 §4.1).\"] # [doc = \"\"] # [doc = \" Errors propagate by default — there is no silent unwinding; an `Err` must be explicitly acted\"] # [doc = \" on by a recovery policy or it continues to surface.\"] # [doc = \"\"] # [doc = \" This is the **input** type to [`crate::handle`] and `crate::recover`.  The `E` error payload\"] # [doc = \" should carry a [`Diag`] diagnostic record per FR-R5.\"] # [derive (Debug , Clone , PartialEq)] pub enum Outcome < T , E > { # [doc = \" The operation succeeded.\"] Ok (T) , # [doc = \" The operation failed with an explicit propagating error (never a silent unwind).\"] Err (E) , }",
+      "reason": "enum `Outcome` derive(Clone) is a satisfied no-op under Mycelium's value semantics (ADR-003 — every value already copies structurally; DN-128 §6.1) — not emitted as an impl, not a gap",
+      "item_name": "Outcome"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/outcome.rs",
+      "line": 13,
+      "col": 1,
+      "category": "DeriveAttr",
+      "rust_construct": "DeriveAttr",
+      "snippet": "# [doc = \" The input result sum `Ok(T) | Err(E)` (RFC-0014 §4.1).\"] # [doc = \"\"] # [doc = \" Errors propagate by default — there is no silent unwinding; an `Err` must be explicitly acted\"] # [doc = \" on by a recovery policy or it continues to surface.\"] # [doc = \"\"] # [doc = \" This is the **input** type to [`crate::handle`] and `crate::recover`.  The `E` error payload\"] # [doc = \" should carry a [`Diag`] diagnostic record per FR-R5.\"] # [derive (Debug , Clone , PartialEq)] pub enum Outcome < T , E > { # [doc = \" The operation succeeded.\"] Ok (T) , # [doc = \" The operation failed with an explicit propagating error (never a silent unwind).\"] Err (E) , }",
+      "reason": "enum `Outcome` derive(PartialEq): generic enum — a derived equality fn for a generic type needs DN-130's generic-instance mechanism, out of this leaf's scope (ONESHOT C2 / DN-128 enum half)",
+      "item_name": "Outcome"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/outcome.rs",
+      "line": 28,
+      "col": 1,
+      "category": "Impl",
+      "rust_construct": "Impl",
+      "snippet": "impl < T , E > Outcome < T , E > { # [doc = \" Construct from a standard `Result`.\"] pub fn from_result (r : Result < T , E >) -> Self { match r { Result :: Ok (v) => Outcome :: Ok (v) , Result :: Err (e) => Outcome :: Err (e) , } } # [doc = \" Convert to a standard `Result`.\"] pub fn into_result (self) -> Result < T , E > { match self { Outcome :: Ok (v) => Result :: Ok (v) , Outcome :: Err (e) => Result :: Err (e) , } } # [doc = \" Whether this is `Ok`.\"] # [must_use] pub fn is_ok (& self) -> bool { matches ! (self , Outcome :: Ok (_)) } # [doc = \" Whether this is `Err`.\"] # [must_use] pub fn is_err (& self) -> bool { matches ! (self , Outcome :: Err (_)) } }",
+      "reason": "no member of this impl block could be transpiled (4 sub-issue(s)): impl method `from_result` body: qualified/associated-function call `Outcome :: Ok` did not resolve to a known-emitted associated fn — Mycelium calls are bare identifiers, and the only sound surface form for `Type::method(...)` is the mangled `Type__method` name the declaration side already emits for a receiver-less inherent-impl associated fn (DN-34 §8.13/8.14), referenced only when that exact declaration is PROVEN present (same-file, or a resolved M-1084 cross-nodule sibling). A primitive/std associated fn with no emitted decl (e.g. `i128::try_from`), an unresolved type, or a `self`-receiving method (excluded by construction — it stays reachable only from its own bare call site) all gap here rather than fabricate a call (G2/VR-5, DN-133); impl method `into_result` body: qualified/associated-function call `Result :: Ok` did not resolve to a known-emitted associated fn — Mycelium calls are bare identifiers, and the only sound surface form for `Type::method(...)` is the mangled `Type__method` name the declaration side already emits for a receiver-less inherent-impl associated fn (DN-34 §8.13/8.14), referenced only when that exact declaration is PROVEN present (same-file, or a resolved M-1084 cross-nodule sibling). A primitive/std associated fn with no emitted decl (e.g. `i128::try_from`), an unresolved type, or a `self`-receiving method (excluded by construction — it stays reachable only from its own bare call site) all gap here rather than fabricate a call (G2/VR-5, DN-133); impl method `is_ok` body: expression-position macro `matches` — no macro system in this grammar fragment (`write!`/`format!` lower to pure `Bytes` per DN-127/M-1090 WU-3); impl method `is_err` body: expression-position macro `matches` — no macro system in this grammar fragment (`write!`/`format!` lower to pure `Bytes` per DN-127/M-1090 WU-3)",
+      "item_name": "Outcome < T , E >"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/outcome.rs",
+      "line": 58,
+      "col": 1,
+      "category": "Struct",
+      "rust_construct": "Struct",
+      "snippet": "# [doc = \" A diagnosed error value: the error payload `E` bundled with its [`Diag`] record (FR-R5).\"] # [doc = \"\"] # [doc = \" `recover` and `handle` accept a generic `E` but the invariant FR-R5 says that a recovered or\"] # [doc = \" re-propagated error carries a `Diag`.  `DiagError<E>` is the canonical bundling.\"] # [derive (Debug , Clone , PartialEq)] pub struct DiagError < E > { # [doc = \" The structured error value.\"] pub error : E , # [doc = \" The diagnostic record attached to this error (RFC-0013 / FR-R5).\"] pub diag : Diag , }",
+      "reason": "struct `DiagError` uses named fields and references a type not resolvable in-file — emitting it positionally would introduce an unresolved reference that poisons the file's `myc check`; left gapped under the M-1006 resolvability gate (VR-5/G2)",
+      "item_name": "DiagError"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/outcome.rs",
+      "line": 70,
+      "col": 1,
+      "category": "Impl",
+      "rust_construct": "Impl",
+      "snippet": "impl < E > DiagError < E > { # [doc = \" Attach a diagnostic record to an error value.\"] pub fn new (error : E , diag : Diag) -> Self { DiagError { error , diag } } }",
+      "reason": "no member of this impl block could be transpiled (1 sub-issue(s)): impl method `new` body: struct literal `DiagError { .. }` — not an in-file single-ctor struct or enum struct-variant that emits (no constructor to build; a cross-nodule variant is an honest DN-113/DN-134-OQ-2 resolvability gap, never a fabricated out-of-file reference — VR-5/G2)",
+      "item_name": "DiagError < E >"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/outcome.rs",
+      "line": 77,
+      "col": 1,
+      "category": "PayloadVariant",
+      "rust_construct": "PayloadVariant",
+      "snippet": "# [doc = \" The **outcome of handling** an [`Outcome`] under a recovery policy (RFC-0014 §4.2).\"] # [doc = \"\"] # [doc = \" There is **no `Dropped` variant** (I1): a mutant handler that discarded an unmatched error\"] # [doc = \" cannot be expressed using this type.\"] # [doc = \"\"] # [doc = \" - [`Resolution::Recovered`]: the error was replaced by a concrete value, tagged honestly\"] # [doc = \"   (never upgraded — I2/VR-5).\"] # [doc = \" - [`Resolution::Propagated`]: the error continues to surface (possibly transformed); it was\"] # [doc = \"   never discarded.\"] # [doc = \"\"] # [doc = \" Both variants carry the [`PolicyRef`] of the acting policy (if any) so every outcome is\"] # [doc = \" EXPLAIN-able (C3).\"] # [derive (Debug , Clone , PartialEq)] pub enum Resolution < T , E > { # [doc = \" The error was explicitly recovered: a concrete value with an honest, policy-inherited tag.\"] # [doc = \"\"] # [doc = \" # Guarantee tag (I2/VR-5)\"] # [doc = \"\"] # [doc = \" `tag` is **never upgraded** by the policy: it is at most the action's honest ceiling\"] # [doc = \" (`Declared` for a `Fallback`; the attempt's own tag for a `Retry`; `Exact` for a clean\"] # [doc = \" `Ok` pass-through).  The `meet` of the action ceiling and the policy's declared tag is\"] # [doc = \" taken to ensure the tag never rises (FR-R3).\"] Recovered { # [doc = \" The recovered value.\"] value : T , # [doc = \" The honest guarantee tag (meet of the action's ceiling and the policy's tag; ≤ policy\"] # [doc = \" tag; never `Exact` unless the recovered value provably justifies it — I2/VR-5).\"] tag : GuaranteeStrength , # [doc = \" The content-addressed policy that recovered this value (C3 / EXPLAIN-able).\"] policy : Option < PolicyRef > , } , # [doc = \" The error was re-propagated — it never vanished (I1).\"] # [doc = \"\"] # [doc = \" The error may have been transformed (e.g. class-escalated) but it continues to surface.\"] # [doc = \" A budget overrun for a `CleanupThenPropagate` cleanup effect is recorded in\"] # [doc = \" `cleanup_overrun` rather than swallowed (spec §7-Q4 disposition: record it for legibility).\"] Propagated { # [doc = \" The propagating error (possibly transformed/escalated).\"] error : E , # [doc = \" The content-addressed policy that acted, if any (C3 / EXPLAIN-able).\"] policy : Option < PolicyRef > , # [doc = \" Whether a `cleanup_then_propagate` cleanup effect overran its budget (spec §7-Q4).\"] # [doc = \"\"] # [doc = \" `true` means the cleanup was **skipped** because of an `EffectBudgetExhausted`; the\"] # [doc = \" original error propagates regardless.  `false` means either no cleanup was attempted\"] # [doc = \" or the cleanup ran successfully within its budget.\"] cleanup_overrun : bool , } , }",
+      "reason": "enum `Resolution` has a named-field variant referencing a type not resolvable in-file — emitting it positionally would introduce an unresolved reference that poisons the file's `myc check`; left gapped under the M-1006 resolvability gate (VR-5/G2)",
+      "item_name": "Resolution"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/outcome.rs",
+      "line": 127,
+      "col": 1,
+      "category": "Impl",
+      "rust_construct": "Impl",
+      "snippet": "impl < T , E > Resolution < T , E > { # [doc = \" Whether the error was recovered (a value is available).\"] # [must_use] pub fn is_recovered (& self) -> bool { matches ! (self , Resolution :: Recovered { .. }) } # [doc = \" Whether the error was re-propagated (never dropped — I1).\"] # [must_use] pub fn is_propagated (& self) -> bool { matches ! (self , Resolution :: Propagated { .. }) } # [doc = \" The acting `PolicyRef`, if any (C3 / EXPLAIN-able).\"] # [must_use] pub fn policy_ref (& self) -> Option < & PolicyRef > { match self { Resolution :: Recovered { policy , .. } | Resolution :: Propagated { policy , .. } => { policy . as_ref () } } } }",
+      "reason": "no member of this impl block could be transpiled (3 sub-issue(s)): impl method `is_recovered` body: expression-position macro `matches` — no macro system in this grammar fragment (`write!`/`format!` lower to pure `Bytes` per DN-127/M-1090 WU-3); impl method `is_propagated` body: expression-position macro `matches` — no macro system in this grammar fragment (`write!`/`format!` lower to pure `Bytes` per DN-127/M-1090 WU-3); impl method `policy_ref` body: struct-variant pattern `Recovered { .. }` names a constructor with no confirmed in-file layout -- resolved only for an emitted, in-file struct (or, once DN-132's SS5.1 variant-aware `StructLayout` population lands, an in-file enum's named-field variant); never a guessed field-index arity (DN-132 SS5.1/OQ-4, VR-5/G2)",
+      "item_name": "Resolution < T , E >"
+    }
+  ],
+  "total_top_level_items": 9
+}

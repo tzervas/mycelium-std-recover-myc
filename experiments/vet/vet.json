@@ -1,0 +1,155 @@
+{
+  "records": [
+    {
+      "myc_file": "/tmp/myc-decompose/work/mycelium-std-recover-myc/experiments/vet/action.myc",
+      "source_file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/action.rs",
+      "class": "Clean",
+      "exit_code": 0,
+      "diagnostic": "",
+      "non_test_items": 2,
+      "emitted_items": 0
+    },
+    {
+      "myc_file": "/tmp/myc-decompose/work/mycelium-std-recover-myc/experiments/vet/effect.myc",
+      "source_file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/effect.rs",
+      "class": "Clean",
+      "exit_code": 0,
+      "diagnostic": "",
+      "non_test_items": 7,
+      "emitted_items": 0
+    },
+    {
+      "myc_file": "/tmp/myc-decompose/work/mycelium-std-recover-myc/experiments/vet/guarantee_matrix.myc",
+      "source_file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/guarantee_matrix.rs",
+      "class": "Clean",
+      "exit_code": 0,
+      "diagnostic": "",
+      "non_test_items": 4,
+      "emitted_items": 3
+    },
+    {
+      "myc_file": "/tmp/myc-decompose/work/mycelium-std-recover-myc/experiments/vet/handle.myc",
+      "source_file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/handle.rs",
+      "class": "CheckError",
+      "exit_code": 3,
+      "diagnostic": "check-error: check error in `std.recover.handle.<use>`: `use std.recover.outcome.Outcome`: no such name `std.recover.outcome.Outcome` in the phylum — no nodule declares it (M-662/DN-113; never a silent skip — G2)",
+      "non_test_items": 9,
+      "emitted_items": 2
+    },
+    {
+      "myc_file": "/tmp/myc-decompose/work/mycelium-std-recover-myc/experiments/vet/lib.myc",
+      "source_file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "class": "CheckError",
+      "exit_code": 3,
+      "diagnostic": "check-error: check error in `std.recover.<use>`: `use std.recover.outcome.Outcome`: no such name `std.recover.outcome.Outcome` in the phylum — no nodule declares it (M-662/DN-113; never a silent skip — G2)",
+      "non_test_items": 7,
+      "emitted_items": 2
+    },
+    {
+      "myc_file": "/tmp/myc-decompose/work/mycelium-std-recover-myc/experiments/vet/outcome.myc",
+      "source_file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/outcome.rs",
+      "class": "Clean",
+      "exit_code": 0,
+      "diagnostic": "",
+      "non_test_items": 9,
+      "emitted_items": 1
+    },
+    {
+      "myc_file": "/tmp/myc-decompose/work/mycelium-std-recover-myc/experiments/vet/policy.myc",
+      "source_file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/policy.rs",
+      "class": "Clean",
+      "exit_code": 0,
+      "diagnostic": "",
+      "non_test_items": 14,
+      "emitted_items": 1
+    },
+    {
+      "myc_file": "/tmp/myc-decompose/work/mycelium-std-recover-myc/experiments/vet/registry.myc",
+      "source_file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/registry.rs",
+      "class": "Clean",
+      "exit_code": 0,
+      "diagnostic": "",
+      "non_test_items": 9,
+      "emitted_items": 3
+    }
+  ],
+  "total_non_test_items": 61,
+  "total_emitted_items": 12,
+  "total_checked_clean_items": 8,
+  "class_counts": {
+    "CheckError": 2,
+    "Clean": 6
+  },
+  "phylum": {
+    "ran": true,
+    "ok": true,
+    "nodules": [
+      {
+        "nodule": "std.recover.action",
+        "file": "action.myc",
+        "class": "Clean",
+        "site": null,
+        "on": null,
+        "message": null
+      },
+      {
+        "nodule": "std.recover.effect",
+        "file": "effect.myc",
+        "class": "Clean",
+        "site": null,
+        "on": null,
+        "message": null
+      },
+      {
+        "nodule": "std.recover.guarantee_matrix",
+        "file": "guarantee_matrix.myc",
+        "class": "Clean",
+        "site": null,
+        "on": null,
+        "message": null
+      },
+      {
+        "nodule": "std.recover.handle",
+        "file": "handle.myc",
+        "class": "Clean",
+        "site": null,
+        "on": null,
+        "message": null
+      },
+      {
+        "nodule": "std.recover",
+        "file": "lib.myc",
+        "class": "Clean",
+        "site": null,
+        "on": null,
+        "message": null
+      },
+      {
+        "nodule": "std.recover.outcome",
+        "file": "outcome.myc",
+        "class": "Clean",
+        "site": null,
+        "on": null,
+        "message": null
+      },
+      {
+        "nodule": "std.recover.policy_kw",
+        "file": "policy.myc",
+        "class": "Clean",
+        "site": null,
+        "on": null,
+        "message": null
+      },
+      {
+        "nodule": "std.recover.registry",
+        "file": "registry.myc",
+        "class": "Clean",
+        "site": null,
+        "on": null,
+        "message": null
+      }
+    ],
+    "diagnostic": ""
+  },
+  "total_checked_clean_items_phylum": 12
+}

@@ -1,0 +1,180 @@
+{
+  "source": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+  "emitted_items": [
+    "use:Outcome",
+    "co-include:ClassName,UnknownClass"
+  ],
+  "gaps": [
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 1,
+      "col": 1,
+      "category": "InnerAttr",
+      "rust_construct": "InnerAttr",
+      "snippet": "# ! [forbid (unsafe_code)]",
+      "reason": "crate/file-level inner attributes (#![...]) are not transpiled (no nodule-header equivalent for these Rust-specific directives)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 75,
+      "col": 1,
+      "category": "ModuleDecl",
+      "rust_construct": "ModuleDecl",
+      "snippet": "pub mod action ;",
+      "reason": "external `mod foo;` declaration — file-linkage, not translatable library surface (Mycelium's nodule-per-file model makes the module tree implicit in the file layout; the sibling file transpiles as its own nodule). Excluded from the expressible-fraction denominator, recorded not dropped",
+      "item_name": "action"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 76,
+      "col": 1,
+      "category": "ModuleDecl",
+      "rust_construct": "ModuleDecl",
+      "snippet": "pub mod effect ;",
+      "reason": "external `mod foo;` declaration — file-linkage, not translatable library surface (Mycelium's nodule-per-file model makes the module tree implicit in the file layout; the sibling file transpiles as its own nodule). Excluded from the expressible-fraction denominator, recorded not dropped",
+      "item_name": "effect"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 77,
+      "col": 1,
+      "category": "ModuleDecl",
+      "rust_construct": "ModuleDecl",
+      "snippet": "pub mod guarantee_matrix ;",
+      "reason": "external `mod foo;` declaration — file-linkage, not translatable library surface (Mycelium's nodule-per-file model makes the module tree implicit in the file layout; the sibling file transpiles as its own nodule). Excluded from the expressible-fraction denominator, recorded not dropped",
+      "item_name": "guarantee_matrix"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 78,
+      "col": 1,
+      "category": "ModuleDecl",
+      "rust_construct": "ModuleDecl",
+      "snippet": "pub mod handle ;",
+      "reason": "external `mod foo;` declaration — file-linkage, not translatable library surface (Mycelium's nodule-per-file model makes the module tree implicit in the file layout; the sibling file transpiles as its own nodule). Excluded from the expressible-fraction denominator, recorded not dropped",
+      "item_name": "handle"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 79,
+      "col": 1,
+      "category": "ModuleDecl",
+      "rust_construct": "ModuleDecl",
+      "snippet": "pub mod outcome ;",
+      "reason": "external `mod foo;` declaration — file-linkage, not translatable library surface (Mycelium's nodule-per-file model makes the module tree implicit in the file layout; the sibling file transpiles as its own nodule). Excluded from the expressible-fraction denominator, recorded not dropped",
+      "item_name": "outcome"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 80,
+      "col": 1,
+      "category": "ModuleDecl",
+      "rust_construct": "ModuleDecl",
+      "snippet": "pub mod policy ;",
+      "reason": "external `mod foo;` declaration — file-linkage, not translatable library surface (Mycelium's nodule-per-file model makes the module tree implicit in the file layout; the sibling file transpiles as its own nodule). Excluded from the expressible-fraction denominator, recorded not dropped",
+      "item_name": "policy"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 81,
+      "col": 1,
+      "category": "ModuleDecl",
+      "rust_construct": "ModuleDecl",
+      "snippet": "pub mod registry ;",
+      "reason": "external `mod foo;` declaration — file-linkage, not translatable library surface (Mycelium's nodule-per-file model makes the module tree implicit in the file layout; the sibling file transpiles as its own nodule). Excluded from the expressible-fraction denominator, recorded not dropped",
+      "item_name": "registry"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 83,
+      "col": 1,
+      "category": "TestItem",
+      "rust_construct": "TestItem",
+      "snippet": "# [cfg (test)] mod tests ;",
+      "reason": "#[cfg(test)] item — out of scope for this PoC's transpilation surface (excluded from the expressible-fraction denominator, but recorded, never silently skipped)",
+      "item_name": "tests"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 88,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "pub use action :: RecoveryAction ;",
+      "reason": "`use action::RecoveryAction` — `RecoveryAction` is not among sibling `action`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 89,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "pub use effect :: { check_effects , Budgets , EffectBudget , EffectBudgetExhausted , EffectKind , EffectSet , UndeclaredEffect , } ;",
+      "reason": "`use effect::check_effects` — `check_effects` is not among sibling `effect`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2); `use effect::Budgets` — `Budgets` is not among sibling `effect`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2); `use effect::EffectBudget` — `EffectBudget` is not among sibling `effect`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2); `use effect::EffectBudgetExhausted` — `EffectBudgetExhausted` is not among sibling `effect`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2); `use effect::EffectKind` — `EffectKind` is not among sibling `effect`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2); `use effect::EffectSet` — `EffectSet` is not among sibling `effect`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2); `use effect::UndeclaredEffect` — `UndeclaredEffect` is not among sibling `effect`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 93,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "pub use handle :: { handle_classified , recover_classified } ;",
+      "reason": "`use handle::handle_classified` — `handle_classified` is not among sibling `handle`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2); `use handle::recover_classified` — `recover_classified` is not among sibling `handle`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 94,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "pub use outcome :: { DiagError , Outcome , Resolution } ;",
+      "reason": "`use outcome::DiagError` — `DiagError` is not among sibling `outcome`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2)",
+      "item_name": "use:Outcome"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 94,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "pub use outcome :: { DiagError , Outcome , Resolution } ;",
+      "reason": "`use outcome::Resolution` — `Resolution` is not among sibling `outcome`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2)",
+      "item_name": "use:Outcome"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 95,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "pub use policy :: { policy_effects , PolicyHashError , PolicyRef , RecoveryPolicy } ;",
+      "reason": "`use policy::policy_effects` — `policy_effects` is not among sibling `policy`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2); `use policy::PolicyHashError` — `PolicyHashError` is not among sibling `policy`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2); `use policy::PolicyRef` — `PolicyRef` is not among sibling `policy`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2); `use policy::RecoveryPolicy` — `RecoveryPolicy` is not among sibling `policy`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 96,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "pub use registry :: { ClassName , ClassRegistry , UnknownClass } ;",
+      "reason": "`use registry::ClassRegistry` — `ClassRegistry` is not among sibling `registry`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2)",
+      "item_name": "co-include:ClassName,UnknownClass"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 98,
+      "col": 1,
+      "category": "Other",
+      "rust_construct": "Other",
+      "snippet": "# [doc = \" `RecoverOutcome<T, E>` is `Resolution<T, E>` — the concrete shape that resolves\"] # [doc = \" `error.md` §7-Q1 (the `std.error` bridge signature owned here).\"] # [doc = \"\"] # [doc = \" The bridge is [`handle_classified`] itself; `RecoverOutcome = Recovered | Propagated`, no\"] # [doc = \" drop variant (I1), honest inherited tag (I2).  `error`'s contract holds verbatim.\"] pub type RecoverOutcome < T , E > = Resolution < T , E > ;",
+      "reason": "`type RecoverOutcome = ...` alias — Mycelium's `type_item` always introduces a new nominal sum type via `'=' constructor ('|' constructor)*`; a bare alias to an existing type would fabricate a sum type where none exists semantically",
+      "item_name": "RecoverOutcome"
+    }
+  ],
+  "total_top_level_items": 15
+}

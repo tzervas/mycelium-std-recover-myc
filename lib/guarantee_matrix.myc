@@ -1,0 +1,49 @@
+// nodule: std.recover.guarantee_matrix
+// The `std.recover` guarantee matrix encoded as **checked data** (RFC-0016 §4.5; spec §4).
+//
+// Every exported operation has one row in [`MATRIX`].  The matrix is the load-bearing C2
+// deliverable (RFC-0016 §4.1 C2 / VR-5): guarantee tags are asserted in tests, not prose-only.
+//
+// Rows mirror the spec §4.5 table exactly.  Tests assert:
+// - No row permits a silent drop (I1 — the never-silent spine).
+// - Recovered-tag discipline (I2/VR-5 — recovery only downgrades).
+// - Budget-bounded effects (I4 — every row with effects is bounded).
+// - `Ok` pass-through is `Exact`, not `Declared` (FR-R3 — the P5-B exact-tag bug fix).
+// - Policy/ledger/check ops are `Exact` (no accuracy semantics, RFC-0016 C2).
+// @summary: best-effort transpilation via mycelium-transpile (M-873). Declared,
+// unvalidated — no Mycelium parser/typechecker confirms this output; see the
+// accompanying .gap.json for every construct this pass could not express.
+nodule std.recover.guarantee_matrix;
+
+// Fallibility classification for a `std.recover` exported op (I1 — explicit outcome set).
+type Fallibility = Total | FallibleConfig | FallibleBudget;
+
+impl Show[Fallibility] for Fallibility {
+  fn render(x: Fallibility) => Bytes =
+    match x { Total => "Total", FallibleConfig => "FallibleConfig", FallibleBudget => "FallibleBudget" };
+};
+
+fn eq_Fallibility(a: Fallibility, b: Fallibility) => Binary{1} =
+  match a { Total => match b { Total => 0b1, _ => 0b0 }, FallibleConfig => match b { FallibleConfig => 0b1, _ => 0b0 }, FallibleBudget => match b { FallibleBudget => 0b1, _ => 0b0 } };
+
+// Whether an op carries an EXPLAIN obligation (C3 — no black boxes).
+type Explainable = PolicyRef | IsPolicyRef | NotApplicable;
+
+impl Show[Explainable] for Explainable {
+  fn render(x: Explainable) => Bytes =
+    match x { PolicyRef => "PolicyRef", IsPolicyRef => "IsPolicyRef", NotApplicable => "NotApplicable" };
+};
+
+fn eq_Explainable(a: Explainable, b: Explainable) => Binary{1} =
+  match a { PolicyRef => match b { PolicyRef => 0b1, _ => 0b0 }, IsPolicyRef => match b { IsPolicyRef => 0b1, _ => 0b0 }, NotApplicable => match b { NotApplicable => 0b1, _ => 0b0 } };
+
+// One row in the `std.recover` guarantee matrix (RFC-0016 §4.5; spec §4).
+type MatrixRow = MatrixRow(Bytes, Bytes, Fallibility, Bytes, Bytes, Explainable, Bytes);
+
+impl Show[MatrixRow] for MatrixRow {
+  fn render(x: MatrixRow) => Bytes =
+    match x { MatrixRow(p0, p1, p2, p3, p4, p5, p6) => bytes_concat(bytes_concat(bytes_concat(bytes_concat(bytes_concat(bytes_concat(bytes_concat(bytes_concat(bytes_concat(bytes_concat(bytes_concat(bytes_concat(bytes_concat(bytes_concat("MatrixRow(", render(p0)), ", "), render(p1)), ", "), render(p2)), ", "), render(p3)), ", "), render(p4)), ", "), render(p5)), ", "), render(p6)), ")") };
+};
+
+fn eq_MatrixRow(a: MatrixRow, b: MatrixRow) => Binary{1} =
+    match a { MatrixRow(p0, p1, p2, p3, p4, p5, p6) => match b { MatrixRow(q0, q1, q2, q3, q4, q5, q6) => and(and(and(and(and(and(bytes_eq(p0, q0), bytes_eq(p1, q1)), eq_Fallibility(p2, q2)), bytes_eq(p3, q3)), bytes_eq(p4, q4)), eq_Explainable(p5, q5)), bytes_eq(p6, q6)) } };

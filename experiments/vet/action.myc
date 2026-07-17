@@ -1,0 +1,12 @@
+// nodule: std.recover.action
+// The **closed** v0 recovery-action set (RFC-0014 §4.4; §8 resolved closed).
+//
+// Each action yields an explicit outcome — a recovered value or a re-propagated error — and
+// there is no action that silently discards an error (I1). The set is **closed** in v0 (spec §8
+// resolved); user-defined compound actions are a §9 future.
+// @summary: best-effort transpilation via mycelium-transpile (M-873). Declared,
+// unvalidated — no Mycelium parser/typechecker confirms this output; see the
+// accompanying .gap.json for every construct this pass could not express.
+nodule std.recover.action;
+
+

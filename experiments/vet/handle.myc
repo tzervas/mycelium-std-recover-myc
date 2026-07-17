@@ -1,0 +1,33 @@
+// nodule: std.recover.handle
+// The **never-silent driver** (RFC-0014 §4.2/§4.3; RFC-0016 C1).
+//
+// [`handle_classified`] is the spine of `std.recover`: it maps an [`Outcome`] through a
+// [`RecoveryPolicy`] and always yields a [`Resolution`] — **never a drop** (I1).
+//
+// - `Ok(v)` passes through as `Recovered` with tag **`Exact`** (FR-R3 fix — the scaffold stamped
+//   `Declared` here; that was wrong: a clean pass-through is not a fallback substitution).
+// - `Err` with **no** matching rule: re-propagates the error **unchanged** (I1 floor).
+// - `Err` with a matching rule: applies the action, respecting the closed set and budgets (I3/I4).
+//
+// # Tag meet (FR-R3 / I2 / VR-5)
+//
+// The recovered tag is chosen **honestly per action**:
+// - `Fallback` → **`Declared`** (fixed ceiling; a substituted value has no checked basis).
+// - `Retry` success → the **attempt's own tag** (inherited; never upgraded).
+// - `Retry` exhausted → `Propagated(original_error)`.
+// - `Escalate`, `CleanupThenPropagate` → `Propagated`.
+// - `Ok` pass-through → **`Exact`** (no substitution; no lower bound imposed).
+//
+// The tag discipline satisfies FR-R3: *recovered tag ≤ policy ceiling* (the meet). Since the
+// policy ceiling for `Fallback` is `Declared` and for `Retry` is the attempt's own tag (which is
+// already honest), the meet is either a no-op or a downgrade — never an upgrade (VR-5).
+// @summary: best-effort transpilation via mycelium-transpile (M-873). Declared,
+// unvalidated — no Mycelium parser/typechecker confirms this output; see the
+// accompanying .gap.json for every construct this pass could not express.
+nodule std.recover.handle;
+
+// EXPLAIN (DN-124): batch-resolved cross-nodule `use` of a non-type item with no extractable single-line free-fn surface — phylum mode sees the sibling export; single-file oracle (phylum-of-one) may refuse until multi-nodule co-check. Types and free-fns with extractable surface co-include instead (L2-B / G-α Rank-2). Not a silent skip (G2/VR-5).
+use std.recover.outcome.Outcome;
+
+// EXPLAIN (L2-B/DN-124): Declared co-include of batch-sibling type surface (homes: std.recover.registry) so single-file oracle is self-contained — not a language `use` identity, not a short-form path collapse (M-1084 full path retained as provenance). Transitive type deps in the same batch are co-included. G2/VR-5.
+type ClassName = ClassName(Bytes);

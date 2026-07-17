@@ -1,0 +1,22 @@
+// nodule: std.recover.effect
+// **Declared, bounded effects** (RFC-0014 §4.5) — re-exported from `mycelium_interp::budget`
+// plus the tooling-layer checker (`check_effects` / `UndeclaredEffect`).
+//
+// The shared budget primitive lives in `mycelium-interp` (RFC-0014 §4.8 — one enforcement
+// mechanism over separate named budgets).  This module re-exports the runtime types unchanged
+// and adds the **declaration checker** (I3 — a tooling concern, not a runtime one; KC-3).
+//
+// # Effect discipline (I3/I4/I5)
+//
+// - **(I3) Effects are declared.** A definition may not perform an effect absent from its
+//   declared set.  [`check_effects`] is the compositional enforcement check.
+// - **(I4) Budgets overrun gracefully.** Every effect is bounded; an overrun is an explicit
+//   [`EffectBudgetExhausted`] — never a hang, stack overflow, or OOM.
+// - **(I5) Tightly scoped by default.** An effect with **no** declared budget cannot run
+//   ([`Budgets::consume`] on an absent budget is an immediate `EffectBudgetExhausted`).
+// @summary: best-effort transpilation via mycelium-transpile (M-873). Declared,
+// unvalidated — no Mycelium parser/typechecker confirms this output; see the
+// accompanying .gap.json for every construct this pass could not express.
+nodule std.recover.effect;
+
+

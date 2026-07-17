@@ -1,0 +1,77 @@
+{
+  "source": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/effect.rs",
+  "emitted_items": [],
+  "gaps": [
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/effect.rs",
+      "line": 17,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "use std :: collections :: BTreeSet ;",
+      "reason": "`use std.collections::BTreeSet` — `std.collections` is not a sibling module OR sibling phylum transpiled in this same batch (an external crate, `std`, or simply out of this batch's target set). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/effect.rs",
+      "line": 21,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "pub use mycelium_interp :: budget :: { Budgets , EffectBudget , EffectBudgetExhausted , EffectKind } ;",
+      "reason": "`use mycelium_interp.budget::Budgets` — `mycelium_interp.budget` is not a sibling module OR sibling phylum transpiled in this same batch (an external crate, `std`, or simply out of this batch's target set). Flagged, not guessed (VR-5/G2); `use mycelium_interp.budget::EffectBudget` — `mycelium_interp.budget` is not a sibling module OR sibling phylum transpiled in this same batch (an external crate, `std`, or simply out of this batch's target set). Flagged, not guessed (VR-5/G2); `use mycelium_interp.budget::EffectBudgetExhausted` — `mycelium_interp.budget` is not a sibling module OR sibling phylum transpiled in this same batch (an external crate, `std`, or simply out of this batch's target set). Flagged, not guessed (VR-5/G2); `use mycelium_interp.budget::EffectKind` — `mycelium_interp.budget` is not a sibling module OR sibling phylum transpiled in this same batch (an external crate, `std`, or simply out of this batch's target set). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/effect.rs",
+      "line": 23,
+      "col": 1,
+      "category": "Other",
+      "rust_construct": "Other",
+      "snippet": "# [doc = \" A definition's **declared** effect set (§4.5 I3) — the set it names on its signature.\"] pub type EffectSet = BTreeSet < EffectKind > ;",
+      "reason": "`type EffectSet = ...` alias — Mycelium's `type_item` always introduces a new nominal sum type via `'=' constructor ('|' constructor)*`; a bare alias to an existing type would fabricate a sum type where none exists semantically",
+      "item_name": "EffectSet"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/effect.rs",
+      "line": 26,
+      "col": 1,
+      "category": "Struct",
+      "rust_construct": "Struct",
+      "snippet": "# [doc = \" A performed-but-undeclared effect (I3) — an explicit checker error, never silent.\"] # [doc = \"\"] # [doc = \" A definition may not perform an effect absent from its declared set.  This is a *checker*\"] # [doc = \" concern (tooling layer), not a runtime one — it lives here rather than in the shared\"] # [doc = \" `mycelium-interp` budget primitive (KC-3).\"] # [derive (Debug , Clone , PartialEq , Eq)] pub struct UndeclaredEffect { # [doc = \" The effect that was performed but not declared.\"] pub effect : EffectKind , }",
+      "reason": "struct `UndeclaredEffect` uses named fields and references a type not resolvable in-file — emitting it positionally would introduce an unresolved reference that poisons the file's `myc check`; left gapped under the M-1006 resolvability gate (VR-5/G2)",
+      "item_name": "UndeclaredEffect"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/effect.rs",
+      "line": 37,
+      "col": 1,
+      "category": "Impl",
+      "rust_construct": "Impl",
+      "snippet": "impl std :: fmt :: Display for UndeclaredEffect { fn fmt (& self , f : & mut std :: fmt :: Formatter < '_ >) -> std :: fmt :: Result { write ! (f , \"undeclared effect {}: a definition may not perform an effect absent from its \\\n             declared signature set (RFC-0014 §4.5 I3 — no unknown side effects); declare it\" , self . effect) } }",
+      "reason": "trait-impl of non-prelude trait `Display` — no ambient trait definition and synthetic trait emission is refused (DN-34 §8.8 / DN-122 MVP); gapped the whole impl so the residual cannot file-poison myc-check (G2; express gap-close 2026-07-16)",
+      "item_name": "UndeclaredEffect"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/effect.rs",
+      "line": 48,
+      "col": 1,
+      "category": "MacroInvocation",
+      "rust_construct": "MacroInvocation",
+      "snippet": "mycelium_std_core :: impl_std_error ! (UndeclaredEffect) ;",
+      "reason": "item-position macro invocation — no macro system in this grammar",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/effect.rs",
+      "line": 50,
+      "col": 1,
+      "category": "MultiStmtBody",
+      "rust_construct": "MultiStmtBody",
+      "snippet": "# [doc = \" The **compositional no-undeclared-effect check** (I3).\"] # [doc = \"\"] # [doc = \" Every effect a definition *performs* (its own plus its callees', composed up the call graph)\"] # [doc = \" must be in its *declared* set.  Returns the first undeclared effect found, if any.\"] # [doc = \"\"] # [doc = \" This *checks* that declared effects compose — it never *infers* one.  An effect can never\"] # [doc = \" become implicit; the discipline is: **manual-declare + compositional-check** (§8 resolved).\"] # [doc = \"\"] # [doc = \" # Errors\"] # [doc = \"\"] # [doc = \" Returns [`UndeclaredEffect`] for the first effect in `performed` that is absent from\"] # [doc = \" `declared`.\"] pub fn check_effects (declared : & EffectSet , performed : & EffectSet) -> Result < () , UndeclaredEffect > { for e in performed { if ! declared . contains (e) { return Err (UndeclaredEffect { effect : e . clone () }) ; } } Ok (()) }",
+      "reason": "function body has a semicolon-terminated (value-discarding) statement expression before the tail — a `let`-chain body maps only simple `let x = e;` bindings plus a single trailing expression",
+      "item_name": "check_effects"
+    }
+  ],
+  "total_top_level_items": 7
+}

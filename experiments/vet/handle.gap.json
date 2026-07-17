@@ -1,0 +1,90 @@
+{
+  "source": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/handle.rs",
+  "emitted_items": [
+    "use:Outcome",
+    "co-include:ClassName"
+  ],
+  "gaps": [
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/handle.rs",
+      "line": 24,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "use mycelium_core :: GuaranteeStrength ;",
+      "reason": "`use mycelium_core::GuaranteeStrength` — `mycelium_core` is not a sibling module OR sibling phylum transpiled in this same batch (an external crate, `std`, or simply out of this batch's target set). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/handle.rs",
+      "line": 25,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "use serde :: Serialize ;",
+      "reason": "`use serde::Serialize` — `serde` is not a sibling module OR sibling phylum transpiled in this same batch (an external crate, `std`, or simply out of this batch's target set). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/handle.rs",
+      "line": 27,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "use crate :: action :: RecoveryAction ;",
+      "reason": "`use action::RecoveryAction` — `RecoveryAction` is not among sibling `action`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/handle.rs",
+      "line": 28,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "use crate :: effect :: Budgets ;",
+      "reason": "`use effect::Budgets` — `Budgets` is not among sibling `effect`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/handle.rs",
+      "line": 29,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "use crate :: outcome :: { Outcome , Resolution } ;",
+      "reason": "`use outcome::Resolution` — `Resolution` is not among sibling `outcome`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2)",
+      "item_name": "use:Outcome"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/handle.rs",
+      "line": 30,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "use crate :: policy :: RecoveryPolicy ;",
+      "reason": "`use policy::RecoveryPolicy` — `RecoveryPolicy` is not among sibling `policy`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/handle.rs",
+      "line": 33,
+      "col": 1,
+      "category": "WhereClause",
+      "rust_construct": "WhereClause",
+      "snippet": "# [doc = \" Handle an [`Outcome`] under a recovery policy, providing the error's class for rule lookup.\"] # [doc = \"\"] # [doc = \" `class_of` extracts the error's class for policy lookup (never an eval'd string — X1). It\"] # [doc = \" returns an **owned** [`ClassName`] (resolved through the registry at policy-build time; the\"] # [doc = \" returned name is already validated — X1).\"] # [doc = \" `attempt` is called at most `max_attempts` times for a `Retry` action, yielding a new\"] # [doc = \" `(Outcome, GuaranteeStrength)` pair (the strength is the attempt value's honest tag).\"] # [doc = \"\"] # [doc = \" # Never-silent (I1 / C1)\"] # [doc = \"\"] # [doc = \" Every call yields `Recovered | Propagated`; no path drops an error.  The [`Resolution`] type\"] # [doc = \" has no `Dropped` variant — I1 is enforced by the type.\"] # [doc = \"\"] # [doc = \" # Guarantee tags (I2 / FR-R3 / VR-5)\"] # [doc = \"\"] # [doc = \" - `Ok(v)` → `Recovered(v, Exact, None)` — the honest tag for a clean pass-through.\"] # [doc = \" - `Fallback` → `Recovered(v, Declared, policy_ref)` — honest floor for a substitution.\"] # [doc = \" - `Retry` success → `Recovered(v, attempt_tag, policy_ref)` — inherits the attempt's tag.\"] # [doc = \" - `Retry` exhausted → `Propagated(original_error, policy_ref, cleanup_overrun: false)`.\"] # [doc = \" - `Escalate` → `Propagated(error, policy_ref, cleanup_overrun: false)`.\"] # [doc = \" - `CleanupThenPropagate` → `Propagated(error, policy_ref, cleanup_overrun: <bool>)`.\"] # [doc = \" - No matching rule → `Propagated(error, None, cleanup_overrun: false)`.\"] # [doc = \"\"] # [doc = \" # Effects (C6 / I3 / I4)\"] # [doc = \"\"] # [doc = \" - `Retry` consumes `EffectKind::Retry` once per attempt from `budgets`. Budget overrun →\"] # [doc = \"   immediate `Propagated(original_error)`.\"] # [doc = \" - `CleanupThenPropagate` consumes the action's declared `effect` once. A budget overrun sets\"] # [doc = \"   `cleanup_overrun: true` in the `Propagated` outcome (spec §7-Q4 disposition: record, not\"] # [doc = \"   swallow).\"] # [doc = \" - `Fallback` and `Escalate` are effect-free.\"] # [doc = \"\"] # [doc = \" # Policy identity (banked guard #5)\"] # [doc = \"\"] # [doc = \" When a rule matches, the acting [`PolicyRef`](crate::policy::PolicyRef) is computed via\"] # [doc = \" [`RecoveryPolicy::policy_ref`] (a stable serde_json encoding — not `Debug`).  If the fallback\"] # [doc = \" value's `serde::Serialize` impl fails (e.g. a `NaN` float), the function propagates the\"] # [doc = \" original error with `policy: None` — it refuses to apply the action without an established\"] # [doc = \" policy identity (never-silent: the error is never dropped, I1).  This situation is a\"] # [doc = \" configuration error in the caller's `T: Serialize` impl; the explicit `Propagated` makes it\"] # [doc = \" diagnosable.\"] # [must_use] pub fn handle_classified < T , E > (outcome : Outcome < T , E > , policy : & RecoveryPolicy < T > , budgets : & mut Budgets , class_of : impl Fn (& E) -> ClassName , mut attempt : impl FnMut () -> (Outcome < T , E > , GuaranteeStrength) ,) -> Resolution < T , E > where T : Serialize + std :: fmt :: Debug + Clone + Send + Sync + 'static , { let error = match outcome { Outcome :: Ok (value) => { return Resolution :: Recovered { value , tag : GuaranteeStrength :: Exact , policy : None , } ; } Outcome :: Err (e) => e , } ; let class = class_of (& error) ; let Some (action) = policy . action_for (& class) else { return Resolution :: Propagated { error , policy : None , cleanup_overrun : false , } ; } ; let pref = match policy . policy_ref () { Ok (r) => Some (r) , Err (_) => { return Resolution :: Propagated { error , policy : None , cleanup_overrun : false , } ; } } ; match action { RecoveryAction :: Fallback { value } => { Resolution :: Recovered { value : * value . clone () , tag : GuaranteeStrength :: Declared , policy : pref , } } RecoveryAction :: Retry { max_attempts } => { let max = * max_attempts ; for _ in 0 .. max { if budgets . consume (mycelium_interp :: budget :: EffectKind :: Retry , 1) . is_err () { return Resolution :: Propagated { error , policy : pref , cleanup_overrun : false , } ; } let (next_outcome , attempt_tag) = attempt () ; if let Outcome :: Ok (value) = next_outcome { return Resolution :: Recovered { value , tag : attempt_tag , policy : pref , } ; } } Resolution :: Propagated { error , policy : pref , cleanup_overrun : false , } } RecoveryAction :: Escalate { to_class } => { let _ = to_class ; Resolution :: Propagated { error , policy : pref , cleanup_overrun : false , } } RecoveryAction :: CleanupThenPropagate { effect } => { let cleanup_overrun = budgets . consume (effect . clone () , 1) . is_err () ; Resolution :: Propagated { error , policy : pref , cleanup_overrun , } } } }",
+      "reason": "a `where` clause has no Mycelium equivalent",
+      "item_name": "handle_classified"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/handle.rs",
+      "line": 192,
+      "col": 1,
+      "category": "WhereClause",
+      "rust_construct": "WhereClause",
+      "snippet": "# [doc = \" Convenience: bridge a `Result<T, E>` into a [`Resolution<T, E>`] under a policy.\"] # [doc = \"\"] # [doc = \" This is [`handle_classified`] with a `Result` input.  `RecoverOutcome<T, E>` is\"] # [doc = \" `Resolution<T, E>` — the concrete shape that resolves `error.md` §7-Q1 (no drop variant, I1;\"] # [doc = \" honest inherited tag, I2).\"] # [must_use] pub fn recover_classified < T , E > (result : Result < T , E > , policy : & RecoveryPolicy < T > , budgets : & mut Budgets , class_of : impl Fn (& E) -> ClassName , attempt : impl FnMut () -> (Outcome < T , E > , GuaranteeStrength) ,) -> Resolution < T , E > where T : Serialize + std :: fmt :: Debug + Clone + Send + Sync + 'static , { handle_classified (Outcome :: from_result (result) , policy , budgets , class_of , attempt ,) }",
+      "reason": "a `where` clause has no Mycelium equivalent",
+      "item_name": "recover_classified"
+    }
+  ],
+  "total_top_level_items": 9
+}

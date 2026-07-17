@@ -1,0 +1,852 @@
+{
+  "gaps": [
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/action.rs",
+      "line": 7,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "use mycelium_interp :: budget :: EffectKind ;",
+      "reason": "`use mycelium_interp.budget::EffectKind` — `mycelium_interp.budget` is not a sibling module OR sibling phylum transpiled in this same batch (an external crate, `std`, or simply out of this batch's target set). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/action.rs",
+      "line": 9,
+      "col": 1,
+      "category": "PayloadVariant",
+      "rust_construct": "PayloadVariant",
+      "snippet": "# [doc = \" The **closed** v0 recovery-action set (RFC-0014 §4.4; §8 resolved).\"] # [doc = \"\"] # [doc = \" Each variant is an explicit instruction to the [`crate::handle`] driver; together they cover\"] # [doc = \" the four recovery archetypes: substitute a value (`fallback`), re-attempt the operation\"] # [doc = \" (`retry`), redirect the error class (`escalate`), run a bounded cleanup and propagate\"] # [doc = \" (`cleanup_then_propagate`).\"] # [doc = \"\"] # [doc = \" # Guarantee tags (I2/VR-5 — recovery only ever downgrades)\"] # [doc = \"\"] # [doc = \" - [`RecoveryAction::Fallback`]: the substituted value is honestly tagged **`Declared`**; a\"] # [doc = \"   fallback has no checked basis and can be at most `Declared`.\"] # [doc = \" - [`RecoveryAction::Retry`]: inherits the successful attempt's **own** tag; on exhaustion no\"] # [doc = \"   value is produced and the original error propagates.\"] # [doc = \" - [`RecoveryAction::Escalate`]: re-propagates — no recovered value, so no guarantee tag\"] # [doc = \"   question (the error's class is transformed, its identity is preserved).\"] # [doc = \" - [`RecoveryAction::CleanupThenPropagate`]: re-propagates the original error — same as above.\"] # [doc = \"\"] # [doc = \" # Never-silent (I1)\"] # [doc = \"\"] # [doc = \" No action variant makes an error vanish. `Fallback` replaces it with an explicit value;\"] # [doc = \" `Retry` propagates the original on exhaustion; `Escalate` and `CleanupThenPropagate`\"] # [doc = \" re-propagate an explicit error. A handler using this closed set **cannot** express a \\\"drop\\\"\"] # [doc = \" — the type enforces I1.\"] # [derive (Debug , Clone , PartialEq)] pub enum RecoveryAction < T > { # [doc = \" Recover with an explicit fallback value.\"] # [doc = \"\"] # [doc = \" The recovered value is honestly tagged **`Declared`** (a substituted fallback has no\"] # [doc = \" checked basis — I2/VR-5). This is the **only** action with a fixed recovered tag; every\"] # [doc = \" other action either inherits its tag from the attempt or does not produce a value.\"] # [doc = \"\"] # [doc = \" # Never-silent (I1)\"] # [doc = \" Always yields `Recovered(value, Declared)` — never a drop.\"] # [doc = \"\"] # [doc = \" # Effects\"] # [doc = \" None — a pure value substitution.\"] Fallback { # [doc = \" The fallback value (boxed to flatten the action enum's discriminant size).\"] value : Box < T > , } , # [doc = \" Re-attempt the operation, bounded by `max_attempts` (I4).\"] # [doc = \"\"] # [doc = \" On each attempt the driver calls the provided `attempt` thunk. If an attempt succeeds its\"] # [doc = \" value is recovered with its **own** honest guarantee (inherited, never upgraded — I2). If\"] # [doc = \" **all** `max_attempts` fail the **original** error continues to propagate (additive — I1).\"] # [doc = \"\"] # [doc = \" # Never-silent (I1)\"] # [doc = \" Either `Recovered` (from a successful attempt) or `Propagated(original_error)` on\"] # [doc = \" exhaustion. The original error is never discarded.\"] # [doc = \"\"] # [doc = \" # Effects\"] # [doc = \" Declares **`EffectKind::Retry`**, budgeted `Attempts(max_attempts)` (I4). A budget\"] # [doc = \" overrun is an explicit [`mycelium_interp::budget::EffectBudgetExhausted`], never a hang.\"] Retry { # [doc = \" The maximum number of re-attempts (the budget ceiling, I4). `0` is valid and means\"] # [doc = \" **no retry** — the driver propagates the original error immediately (never a silent\"] # [doc = \" drop, I1); it is not a fabricated default.\"] max_attempts : u64 , } , # [doc = \" Re-propagate under a different error-class *intent* — still explicit, never a recovered value.\"] # [doc = \"\"] # [doc = \" The escalation intent is captured in `to_class` and recorded in the acting [`crate::policy::PolicyRef`]\"] # [doc = \" (the content hash over all rules — C3 / EXPLAIN-able). It always re-propagates; there is\"] # [doc = \" no recovered value.\"] # [doc = \"\"] # [doc = \" # Limitation (Rust-first seam — honest, not hidden)\"] # [doc = \"\"] # [doc = \" The **generic driver** (`handle_classified`) operates on an opaque `E` and **cannot\"] # [doc = \" physically re-type it** with the escalated class name.  The `to_class` is registered and\"] # [doc = \" hashed into the `PolicyRef`, but the propagated `error: E` value itself is unchanged at the\"] # [doc = \" type level.  In the `std.diag`-integrated form (once the M-510 / M-520 integration seam is\"] # [doc = \" reconciled) the driver would receive a `DiagError<E>` whose `Diag` record carries the\"] # [doc = \" escalated class — but that path requires the shared `ClassRegistry` from `mycelium-std-diag`\"] # [doc = \" (see `registry.rs`).  For now: the escalation is explicit and EXPLAIN-able via the\"] # [doc = \" `PolicyRef`, but the `E` payload is not re-typed.\"] # [doc = \"\"] # [doc = \" # Never-silent (I1)\"] # [doc = \" Always `Propagated(error)` — the error's existence is never hidden.\"] # [doc = \"\"] # [doc = \" # Effects\"] # [doc = \" None (a pure structural transform — the class intent is in the PolicyRef; the error continues).\"] Escalate { # [doc = \" The class to escalate into (registry-resolved name; X1).\"] to_class : String , } , # [doc = \" Run a **bounded** effect then let the original error continue (additive).\"] # [doc = \"\"] # [doc = \" The driver consumes `effect` from the ambient budget ledger (one enforcement mechanism —\"] # [doc = \" RFC-0014 §4.8 / `mycelium-interp`). A budget overrun skips the cleanup **only** — the\"] # [doc = \" original error propagates regardless (I1). The cleanup's budget overrun is noted in the\"] # [doc = \" returned [`crate::Resolution::Propagated`] as an optional `cleanup_overrun` flag so the\"] # [doc = \" failure is legible, not silently swallowed (spec §7-Q4 disposition: record it).\"] # [doc = \"\"] # [doc = \" # Never-silent (I1)\"] # [doc = \" The original error always propagates, whether the cleanup succeeds or overruns.\"] # [doc = \"\"] # [doc = \" # Effects\"] # [doc = \" Declares `effect`, budgeted in the [`mycelium_interp::budget::Budgets`] ledger (I4).\"] CleanupThenPropagate { # [doc = \" The declared cleanup effect (its budget is in the ambient ledger; I5).\"] effect : EffectKind , } , }",
+      "reason": "enum `RecoveryAction` has a named-field variant referencing a type not resolvable in-file — emitting it positionally would introduce an unresolved reference that poisons the file's `myc check`; left gapped under the M-1006 resolvability gate (VR-5/G2)",
+      "item_name": "RecoveryAction"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/effect.rs",
+      "line": 17,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "use std :: collections :: BTreeSet ;",
+      "reason": "`use std.collections::BTreeSet` — `std.collections` is not a sibling module OR sibling phylum transpiled in this same batch (an external crate, `std`, or simply out of this batch's target set). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/effect.rs",
+      "line": 21,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "pub use mycelium_interp :: budget :: { Budgets , EffectBudget , EffectBudgetExhausted , EffectKind } ;",
+      "reason": "`use mycelium_interp.budget::Budgets` — `mycelium_interp.budget` is not a sibling module OR sibling phylum transpiled in this same batch (an external crate, `std`, or simply out of this batch's target set). Flagged, not guessed (VR-5/G2); `use mycelium_interp.budget::EffectBudget` — `mycelium_interp.budget` is not a sibling module OR sibling phylum transpiled in this same batch (an external crate, `std`, or simply out of this batch's target set). Flagged, not guessed (VR-5/G2); `use mycelium_interp.budget::EffectBudgetExhausted` — `mycelium_interp.budget` is not a sibling module OR sibling phylum transpiled in this same batch (an external crate, `std`, or simply out of this batch's target set). Flagged, not guessed (VR-5/G2); `use mycelium_interp.budget::EffectKind` — `mycelium_interp.budget` is not a sibling module OR sibling phylum transpiled in this same batch (an external crate, `std`, or simply out of this batch's target set). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/effect.rs",
+      "line": 23,
+      "col": 1,
+      "category": "Other",
+      "rust_construct": "Other",
+      "snippet": "# [doc = \" A definition's **declared** effect set (§4.5 I3) — the set it names on its signature.\"] pub type EffectSet = BTreeSet < EffectKind > ;",
+      "reason": "`type EffectSet = ...` alias — Mycelium's `type_item` always introduces a new nominal sum type via `'=' constructor ('|' constructor)*`; a bare alias to an existing type would fabricate a sum type where none exists semantically",
+      "item_name": "EffectSet"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/effect.rs",
+      "line": 26,
+      "col": 1,
+      "category": "Struct",
+      "rust_construct": "Struct",
+      "snippet": "# [doc = \" A performed-but-undeclared effect (I3) — an explicit checker error, never silent.\"] # [doc = \"\"] # [doc = \" A definition may not perform an effect absent from its declared set.  This is a *checker*\"] # [doc = \" concern (tooling layer), not a runtime one — it lives here rather than in the shared\"] # [doc = \" `mycelium-interp` budget primitive (KC-3).\"] # [derive (Debug , Clone , PartialEq , Eq)] pub struct UndeclaredEffect { # [doc = \" The effect that was performed but not declared.\"] pub effect : EffectKind , }",
+      "reason": "struct `UndeclaredEffect` uses named fields and references a type not resolvable in-file — emitting it positionally would introduce an unresolved reference that poisons the file's `myc check`; left gapped under the M-1006 resolvability gate (VR-5/G2)",
+      "item_name": "UndeclaredEffect"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/effect.rs",
+      "line": 37,
+      "col": 1,
+      "category": "Impl",
+      "rust_construct": "Impl",
+      "snippet": "impl std :: fmt :: Display for UndeclaredEffect { fn fmt (& self , f : & mut std :: fmt :: Formatter < '_ >) -> std :: fmt :: Result { write ! (f , \"undeclared effect {}: a definition may not perform an effect absent from its \\\n             declared signature set (RFC-0014 §4.5 I3 — no unknown side effects); declare it\" , self . effect) } }",
+      "reason": "trait-impl of non-prelude trait `Display` — no ambient trait definition and synthetic trait emission is refused (DN-34 §8.8 / DN-122 MVP); gapped the whole impl so the residual cannot file-poison myc-check (G2; express gap-close 2026-07-16)",
+      "item_name": "UndeclaredEffect"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/effect.rs",
+      "line": 48,
+      "col": 1,
+      "category": "MacroInvocation",
+      "rust_construct": "MacroInvocation",
+      "snippet": "mycelium_std_core :: impl_std_error ! (UndeclaredEffect) ;",
+      "reason": "item-position macro invocation — no macro system in this grammar",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/effect.rs",
+      "line": 50,
+      "col": 1,
+      "category": "MultiStmtBody",
+      "rust_construct": "MultiStmtBody",
+      "snippet": "# [doc = \" The **compositional no-undeclared-effect check** (I3).\"] # [doc = \"\"] # [doc = \" Every effect a definition *performs* (its own plus its callees', composed up the call graph)\"] # [doc = \" must be in its *declared* set.  Returns the first undeclared effect found, if any.\"] # [doc = \"\"] # [doc = \" This *checks* that declared effects compose — it never *infers* one.  An effect can never\"] # [doc = \" become implicit; the discipline is: **manual-declare + compositional-check** (§8 resolved).\"] # [doc = \"\"] # [doc = \" # Errors\"] # [doc = \"\"] # [doc = \" Returns [`UndeclaredEffect`] for the first effect in `performed` that is absent from\"] # [doc = \" `declared`.\"] pub fn check_effects (declared : & EffectSet , performed : & EffectSet) -> Result < () , UndeclaredEffect > { for e in performed { if ! declared . contains (e) { return Err (UndeclaredEffect { effect : e . clone () }) ; } } Ok (()) }",
+      "reason": "function body has a semicolon-terminated (value-discarding) statement expression before the tail — a `let`-chain body maps only simple `let x = e;` bindings plus a single trailing expression",
+      "item_name": "check_effects"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/guarantee_matrix.rs",
+      "line": 13,
+      "col": 1,
+      "category": "DeriveSatisfied",
+      "rust_construct": "DeriveSatisfied",
+      "snippet": "# [doc = \" Fallibility classification for a `std.recover` exported op (I1 — explicit outcome set).\"] # [derive (Debug , Clone , Copy , PartialEq , Eq)] pub enum Fallibility { # [doc = \" Always yields a `Resolution` (either `Recovered` or `Propagated`) — total over budgets.\"] Total , # [doc = \" Returns `Result<_, UnknownClass>` — the explicit configuration-error path.\"] FallibleConfig , # [doc = \" Returns `Result<_, EffectBudgetExhausted>` — the explicit overrun path.\"] FallibleBudget , }",
+      "reason": "enum `Fallibility` derive(Clone) is a satisfied no-op under Mycelium's value semantics (ADR-003 — every value already copies structurally; DN-128 §6.1) — not emitted as an impl, not a gap",
+      "item_name": "Fallibility"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/guarantee_matrix.rs",
+      "line": 13,
+      "col": 1,
+      "category": "DeriveSatisfied",
+      "rust_construct": "DeriveSatisfied",
+      "snippet": "# [doc = \" Fallibility classification for a `std.recover` exported op (I1 — explicit outcome set).\"] # [derive (Debug , Clone , Copy , PartialEq , Eq)] pub enum Fallibility { # [doc = \" Always yields a `Resolution` (either `Recovered` or `Propagated`) — total over budgets.\"] Total , # [doc = \" Returns `Result<_, UnknownClass>` — the explicit configuration-error path.\"] FallibleConfig , # [doc = \" Returns `Result<_, EffectBudgetExhausted>` — the explicit overrun path.\"] FallibleBudget , }",
+      "reason": "enum `Fallibility` derive(Copy) is a satisfied no-op under Mycelium's value semantics (ADR-003 — every value already copies structurally; DN-128 §6.1) — not emitted as an impl, not a gap",
+      "item_name": "Fallibility"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/guarantee_matrix.rs",
+      "line": 13,
+      "col": 1,
+      "category": "DeriveSatisfied",
+      "rust_construct": "DeriveSatisfied",
+      "snippet": "# [doc = \" Fallibility classification for a `std.recover` exported op (I1 — explicit outcome set).\"] # [derive (Debug , Clone , Copy , PartialEq , Eq)] pub enum Fallibility { # [doc = \" Always yields a `Resolution` (either `Recovered` or `Propagated`) — total over budgets.\"] Total , # [doc = \" Returns `Result<_, UnknownClass>` — the explicit configuration-error path.\"] FallibleConfig , # [doc = \" Returns `Result<_, EffectBudgetExhausted>` — the explicit overrun path.\"] FallibleBudget , }",
+      "reason": "enum `Fallibility` derive(Eq): covered by co-occurring PartialEq → `fn eq_Fallibility` (product-row collision policy; DN-128 / ONESHOT C2) — not a second emission",
+      "item_name": "Fallibility"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/guarantee_matrix.rs",
+      "line": 24,
+      "col": 1,
+      "category": "DeriveSatisfied",
+      "rust_construct": "DeriveSatisfied",
+      "snippet": "# [doc = \" Whether an op carries an EXPLAIN obligation (C3 — no black boxes).\"] # [derive (Debug , Clone , Copy , PartialEq , Eq)] pub enum Explainable { # [doc = \" The op records the acting `PolicyRef` on every outcome (C3).\"] PolicyRef , # [doc = \" The op *is* the policy reference (the `policy_ref` op itself).\"] IsPolicyRef , # [doc = \" No EXPLAIN artifact needed (value/config/budget ops with no selection).\"] NotApplicable , }",
+      "reason": "enum `Explainable` derive(Clone) is a satisfied no-op under Mycelium's value semantics (ADR-003 — every value already copies structurally; DN-128 §6.1) — not emitted as an impl, not a gap",
+      "item_name": "Explainable"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/guarantee_matrix.rs",
+      "line": 24,
+      "col": 1,
+      "category": "DeriveSatisfied",
+      "rust_construct": "DeriveSatisfied",
+      "snippet": "# [doc = \" Whether an op carries an EXPLAIN obligation (C3 — no black boxes).\"] # [derive (Debug , Clone , Copy , PartialEq , Eq)] pub enum Explainable { # [doc = \" The op records the acting `PolicyRef` on every outcome (C3).\"] PolicyRef , # [doc = \" The op *is* the policy reference (the `policy_ref` op itself).\"] IsPolicyRef , # [doc = \" No EXPLAIN artifact needed (value/config/budget ops with no selection).\"] NotApplicable , }",
+      "reason": "enum `Explainable` derive(Copy) is a satisfied no-op under Mycelium's value semantics (ADR-003 — every value already copies structurally; DN-128 §6.1) — not emitted as an impl, not a gap",
+      "item_name": "Explainable"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/guarantee_matrix.rs",
+      "line": 24,
+      "col": 1,
+      "category": "DeriveSatisfied",
+      "rust_construct": "DeriveSatisfied",
+      "snippet": "# [doc = \" Whether an op carries an EXPLAIN obligation (C3 — no black boxes).\"] # [derive (Debug , Clone , Copy , PartialEq , Eq)] pub enum Explainable { # [doc = \" The op records the acting `PolicyRef` on every outcome (C3).\"] PolicyRef , # [doc = \" The op *is* the policy reference (the `policy_ref` op itself).\"] IsPolicyRef , # [doc = \" No EXPLAIN artifact needed (value/config/budget ops with no selection).\"] NotApplicable , }",
+      "reason": "enum `Explainable` derive(Eq): covered by co-occurring PartialEq → `fn eq_Explainable` (product-row collision policy; DN-128 / ONESHOT C2) — not a second emission",
+      "item_name": "Explainable"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/guarantee_matrix.rs",
+      "line": 35,
+      "col": 1,
+      "category": "NamedFieldDrop",
+      "rust_construct": "NamedFieldDrop",
+      "snippet": "# [doc = \" One row in the `std.recover` guarantee matrix (RFC-0016 §4.5; spec §4).\"] # [derive (Debug , Clone , PartialEq , Eq)] pub struct MatrixRow { # [doc = \" The exported operation name.\"] pub op : & 'static str , # [doc = \" Guarantee tag on `Exact ⊐ Proven ⊐ Empirical ⊐ Declared` (VR-5).\"] # [doc = \"\"] # [doc = \" - `\\\"Exact\\\"` — no accuracy/precision semantics (value/config/budget ops).\"] # [doc = \" - `\\\"Declared\\\"` — the substituted fallback has no checked basis (I2/VR-5).\"] # [doc = \" - `\\\"Inherited-from-attempt\\\"` — inherits the attempt's own tag (retry / pass-through).\"] # [doc = \" - `\\\"Inherited-honest-floor\\\"` — `Exact` for Ok pass-through; never upgraded.\"] pub guarantee : & 'static str , # [doc = \" Fallibility: total, fallible-config, or fallible-budget.\"] pub fallibility : Fallibility , # [doc = \" The explicit outcome / error set description (non-empty for fallible ops).\"] pub error_set : & 'static str , # [doc = \" Declared + budgeted effects (C6).  \\\"none\\\" means effect-free.\"] pub effects : & 'static str , # [doc = \" Whether the op has a C3 EXPLAIN obligation.\"] pub explainable : Explainable , # [doc = \" The structural never-silent property of this op (C1/I1 — must be non-empty for every row).\"] pub never_silent_property : & 'static str , }",
+      "reason": "struct `MatrixRow` named field(s) `op, guarantee, fallibility, error_set, effects, explainable, never_silent_property` emitted positionally as `MatrixRow(Bytes, Bytes, Fallibility, Bytes, Bytes, Explainable, Bytes)` — Mycelium's `constructor` is positional-only (no record surface); product structure preserved, field names dropped (matches `lib/std/*.myc` hand-ports)",
+      "item_name": "MatrixRow"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/guarantee_matrix.rs",
+      "line": 35,
+      "col": 1,
+      "category": "DeriveSatisfied",
+      "rust_construct": "DeriveSatisfied",
+      "snippet": "# [doc = \" One row in the `std.recover` guarantee matrix (RFC-0016 §4.5; spec §4).\"] # [derive (Debug , Clone , PartialEq , Eq)] pub struct MatrixRow { # [doc = \" The exported operation name.\"] pub op : & 'static str , # [doc = \" Guarantee tag on `Exact ⊐ Proven ⊐ Empirical ⊐ Declared` (VR-5).\"] # [doc = \"\"] # [doc = \" - `\\\"Exact\\\"` — no accuracy/precision semantics (value/config/budget ops).\"] # [doc = \" - `\\\"Declared\\\"` — the substituted fallback has no checked basis (I2/VR-5).\"] # [doc = \" - `\\\"Inherited-from-attempt\\\"` — inherits the attempt's own tag (retry / pass-through).\"] # [doc = \" - `\\\"Inherited-honest-floor\\\"` — `Exact` for Ok pass-through; never upgraded.\"] pub guarantee : & 'static str , # [doc = \" Fallibility: total, fallible-config, or fallible-budget.\"] pub fallibility : Fallibility , # [doc = \" The explicit outcome / error set description (non-empty for fallible ops).\"] pub error_set : & 'static str , # [doc = \" Declared + budgeted effects (C6).  \\\"none\\\" means effect-free.\"] pub effects : & 'static str , # [doc = \" Whether the op has a C3 EXPLAIN obligation.\"] pub explainable : Explainable , # [doc = \" The structural never-silent property of this op (C1/I1 — must be non-empty for every row).\"] pub never_silent_property : & 'static str , }",
+      "reason": "struct `MatrixRow` derive(Clone) is a satisfied no-op under Mycelium's value semantics (ADR-003 — every value already copies structurally; DN-128 §6.1) — not emitted as an impl, not a gap",
+      "item_name": "MatrixRow"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/guarantee_matrix.rs",
+      "line": 35,
+      "col": 1,
+      "category": "DeriveAttr",
+      "rust_construct": "DeriveAttr",
+      "snippet": "# [doc = \" One row in the `std.recover` guarantee matrix (RFC-0016 §4.5; spec §4).\"] # [derive (Debug , Clone , PartialEq , Eq)] pub struct MatrixRow { # [doc = \" The exported operation name.\"] pub op : & 'static str , # [doc = \" Guarantee tag on `Exact ⊐ Proven ⊐ Empirical ⊐ Declared` (VR-5).\"] # [doc = \"\"] # [doc = \" - `\\\"Exact\\\"` — no accuracy/precision semantics (value/config/budget ops).\"] # [doc = \" - `\\\"Declared\\\"` — the substituted fallback has no checked basis (I2/VR-5).\"] # [doc = \" - `\\\"Inherited-from-attempt\\\"` — inherits the attempt's own tag (retry / pass-through).\"] # [doc = \" - `\\\"Inherited-honest-floor\\\"` — `Exact` for Ok pass-through; never upgraded.\"] pub guarantee : & 'static str , # [doc = \" Fallibility: total, fallible-config, or fallible-budget.\"] pub fallibility : Fallibility , # [doc = \" The explicit outcome / error set description (non-empty for fallible ops).\"] pub error_set : & 'static str , # [doc = \" Declared + budgeted effects (C6).  \\\"none\\\" means effect-free.\"] pub effects : & 'static str , # [doc = \" Whether the op has a C3 EXPLAIN obligation.\"] pub explainable : Explainable , # [doc = \" The structural never-silent property of this op (C1/I1 — must be non-empty for every row).\"] pub never_silent_property : & 'static str , }",
+      "reason": "struct `MatrixRow` derive(...) names Eq not in the DN-128 standard-derive set this leaf builds (Debug/Default/Clone/Copy/PartialEq/PartialOrd/Hash all recognized; bare Eq/Ord are deliberately NOT recognized — see emit/derives/mod.rs::TABLE's doc for why) — dropped, no confirmed Mycelium surface",
+      "item_name": "MatrixRow"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/guarantee_matrix.rs",
+      "line": 59,
+      "col": 1,
+      "category": "Other",
+      "rust_construct": "Other",
+      "snippet": "# [doc = \" The §4.5 guarantee matrix (spec §4; RFC-0016 §4.5; RFC-0014 I1–I5).\"] # [doc = \"\"] # [doc = \" **No row permits a silent drop** (I1/C1): every op either recovers explicitly (honest tag),\"] # [doc = \" re-propagates, or refuses a budget/config error explicitly — none of them \\\"silently returns\"] # [doc = \" success\\\" or \\\"the error disappears\\\".\"] pub static MATRIX : & [MatrixRow] = & [MatrixRow { op : \"handle (never-silent driver)\" , guarantee : \"Inherited-honest-floor: Exact for Ok pass-through, Declared for fallback, attempt-tag for retry success\" , fallibility : Fallibility :: Total , error_set : \"total over budgets — yields Recovered | Propagated; no drop (I1); budget overrun is EffectBudgetExhausted routed through the outcome\" , effects : \"the policy's actions' effects (retry → EffectKind::Retry budgeted Attempts(N); cleanup_then_propagate → declared effect budgeted); Ok / fallback / escalate paths are effect-free\" , explainable : Explainable :: PolicyRef , never_silent_property : \"Resolution has no Dropped variant; every call yields Recovered or Propagated — enforced by the type (I1)\" , } , MatrixRow { op : \"recover / handle_classified (std.error bridge)\" , guarantee : \"= handle — inherits the honest floor; never upgraded (I2/VR-5)\" , fallibility : Fallibility :: Total , error_set : \"RecoverOutcome = Resolution = Recovered | Propagated; never a drop (I1)\" , effects : \"= handle (the policy's declared, budgeted effects)\" , explainable : Explainable :: PolicyRef , never_silent_property : \"Resolution = Recovered | Propagated; no Dropped variant — I1 is a property of the type\" , } , MatrixRow { op : \"fallback(value) (action)\" , guarantee : \"Declared — a substituted fallback has no checked basis (I2/VR-5)\" , fallibility : Fallibility :: Total , error_set : \"always Recovered(value, Declared) — the one always-recovering action\" , effects : \"none (pure value substitution)\" , explainable : Explainable :: PolicyRef , never_silent_property : \"always Recovered — the error is replaced by an explicit value (I1); the substitution is honest-tagged Declared\" , } , MatrixRow { op : \"retry(<=N) (action)\" , guarantee : \"Inherited-from-attempt — the successful attempt's own tag; on exhaustion no value is produced\" , fallibility : Fallibility :: Total , error_set : \"Recovered on success; Propagated(original_error) on exhaustion — bounded by <=N (I4); EffectBudgetExhausted on budget overrun\" , effects : \"EffectKind::Retry, budgeted Attempts(N); overrun → graceful EffectBudgetExhausted (I4)\" , explainable : Explainable :: PolicyRef , never_silent_property : \"either Recovered (attempt succeeded) or Propagated(original_error) (exhausted) — original error never discarded (I1)\" , } , MatrixRow { op : \"escalate(class') (action)\" , guarantee : \"n/a — re-propagates an error, not a value; no accuracy semantics\" , fallibility : Fallibility :: Total , error_set : \"always Propagated(transformed_error) — still explicit; never a drop (I1)\" , effects : \"none (pure structural transform — class label changes, error continues)\" , explainable : Explainable :: PolicyRef , never_silent_property : \"always Propagated — the error is re-tagged but never discarded (I1); the escalated class is in the PolicyRef (C3)\" , } , MatrixRow { op : \"cleanup_then_propagate(effect) (action)\" , guarantee : \"n/a — re-propagates the original error\" , fallibility : Fallibility :: Total , error_set : \"always Propagated(original_error); cleanup budget overrun is recorded in cleanup_overrun field (legible — spec §7-Q4); original error propagates regardless (I1)\" , effects : \"declared cleanup effect, budgeted (I4/I5); overrun graceful (skips cleanup, records overrun, propagates original error)\" , explainable : Explainable :: PolicyRef , never_silent_property : \"original error always propagates (I1) — even if the cleanup budget overruns; the overrun is recorded (not swallowed)\" , } , MatrixRow { op : \"on (policy registration)\" , guarantee : \"Exact (builds a config value; no accuracy semantics)\" , fallibility : Fallibility :: FallibleConfig , error_set : \"Err(UnknownClass) — a class not in the diag registry is an explicit config error, never an eval'd string (X1)\" , effects : \"none\" , explainable : Explainable :: NotApplicable , never_silent_property : \"Err(UnknownClass) is explicit — an unknown class never silently becomes a default action (X1/G2)\" , } , MatrixRow { op : \"policy_ref\" , guarantee : \"Exact\" , fallibility : Fallibility :: Total , error_set : \"\" , effects : \"none\" , explainable : Explainable :: IsPolicyRef , never_silent_property : \"pure deterministic hash — no error path; policy_ref is the EXPLAIN identity (C3)\" , } , MatrixRow { op : \"action_for\" , guarantee : \"Exact\" , fallibility : Fallibility :: Total , error_set : \"Option<RecoveryAction> — None if no rule for the class (never a silent fallthrough)\" , effects : \"none\" , explainable : Explainable :: NotApplicable , never_silent_property : \"None is explicit absence — no silent fallthrough to a default action (G2)\" , } , MatrixRow { op : \"consume (budget ledger)\" , guarantee : \"Exact (budget arithmetic; no accuracy semantics)\" , fallibility : Fallibility :: FallibleBudget , error_set : \"Err(EffectBudgetExhausted) — the graceful, explicit overrun (I4); names kind + requested + remaining; never a hang/OOM\" , effects : \"the consumed EffectKind, bounded\" , explainable : Explainable :: NotApplicable , never_silent_property : \"Err(EffectBudgetExhausted) is explicit — an overrun never hangs or silently stalls (I4)\" , } , MatrixRow { op : \"check_effects (I3)\" , guarantee : \"Exact (static check; no accuracy semantics)\" , fallibility : Fallibility :: FallibleConfig , error_set : \"Err(UndeclaredEffect) — a performed-but-undeclared effect is an explicit checker error (I3); names the undeclared effect\" , effects : \"none (a static checker — not a runtime concern; KC-3)\" , explainable : Explainable :: NotApplicable , never_silent_property : \"Err(UndeclaredEffect) is explicit — an undeclared effect never silently becomes a valid side effect (I3/G2)\" , } ,] ;",
+      "reason": "top-level `static MATRIX` — no static item production in the grammar",
+      "item_name": "MATRIX"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/guarantee_matrix.rs",
+      "line": 171,
+      "col": 1,
+      "category": "TestItem",
+      "rust_construct": "TestItem",
+      "snippet": "# [cfg (test)] mod tests { use super :: * ; # [doc = \" Every row has a non-empty `never_silent_property` (C1/I1).\"] # [doc = \" Guard: leaving `never_silent_property` empty on any row makes this fail.\"] # [test] fn every_row_states_never_silent_property () { for row in MATRIX { assert ! (! row . never_silent_property . is_empty () , \"row {:?} must state its never_silent_property (C1/I1)\" , row . op) ; } } # [doc = \" No row implies a silent drop (I1 — \\\"drop\\\" in a row's error_set or\"] # [doc = \" never_silent_property must always negate it with \\\"never\\\" or \\\"no drop\\\").\"] # [doc = \" Guard: adding a row with \\\"drop\\\" in error_set without a negation makes this fail.\"] # [test] fn no_row_permits_silent_drop () { for row in MATRIX { let text = row . error_set . to_lowercase () ; let nsp = row . never_silent_property . to_lowercase () ; if text . contains (\"drop\") { let negated = text . contains (\"never\") || text . contains (\"no drop\") || nsp . contains (\"never\") || nsp . contains (\"no drop\") ; assert ! (negated , \"row {:?} mentions 'drop' without negation ('never'/'no drop') — \\\n                     may imply a silent drop (I1): error_set={:?}\" , row . op , row . error_set) ; } } } # [doc = \" The handle/recover bridge rows are `Total` (they always yield a `Resolution`).\"] # [doc = \" Guard: changing the driver row's fallibility makes this fail.\"] # [test] fn driver_rows_are_total () { for row in MATRIX { if row . op . starts_with (\"handle\") || row . op . starts_with (\"recover\") { assert_eq ! (row . fallibility , Fallibility :: Total , \"driver row {:?} must be Total (total over budgets — I1/I4)\" , row . op) ; } } } # [doc = \" The fallback action row is `Declared` (the one fixed guaranteed-tag action — I2/VR-5).\"] # [doc = \" Guard: changing fallback's guarantee tag makes this fail.\"] # [test] fn fallback_action_is_declared () { let row = MATRIX . iter () . find (| r | r . op . starts_with (\"fallback\")) . expect (\"fallback row must be in the matrix\") ; assert ! (row . guarantee . contains (\"Declared\") , \"fallback action must carry Declared (I2/VR-5 — a substituted fallback has no \\\n             checked basis): {:?}\" , row . guarantee) ; } # [doc = \" The Ok pass-through guarantee (via handle) contains \\\"Exact\\\" — FR-R3 bug fix (P5-B).\"] # [doc = \" Guard: changing the driver row's guarantee to Declared makes this fail.\"] # [test] fn ok_pass_through_is_exact_not_declared () { let row = MATRIX . iter () . find (| r | r . op . starts_with (\"handle\")) . expect (\"handle row must be in the matrix\") ; assert ! (row . guarantee . contains (\"Exact\") , \"handle (Ok pass-through) must include Exact — not Declared (FR-R3 / P5-B bug fix): \\\n             {:?}\" , row . guarantee) ; assert ! (row . guarantee . contains (\"Ok pass-through\") , \"handle row guarantee must note the Ok-pass-through scoping of Exact: {:?}\" , row . guarantee) ; } # [doc = \" Policy/ledger/check ops are `Exact` (no accuracy semantics — RFC-0016 C2 \\\"len-style\\\").\"] # [doc = \" Guard: tagging a policy op as non-Exact makes this fail.\"] # [test] fn policy_and_ledger_ops_are_exact () { let exact_ops = [\"on (policy registration)\" , \"policy_ref\" , \"action_for\" , \"consume (budget ledger)\" , \"check_effects (I3)\" ,] ; for & op in & exact_ops { let row = MATRIX . iter () . find (| r | r . op == op) . unwrap_or_else (| | panic ! (\"matrix must contain op {:?}\" , op)) ; assert ! (row . guarantee . starts_with (\"Exact\") , \"op {:?} must be Exact (no accuracy semantics, RFC-0016 C2): {:?}\" , op , row . guarantee) ; } } # [doc = \" `retry` action row has budgeted `Retry` effect (I3/I4).\"] # [doc = \" Guard: removing the effect from the retry row makes this fail.\"] # [test] fn retry_action_has_budgeted_retry_effect () { let row = MATRIX . iter () . find (| r | r . op . starts_with (\"retry\")) . expect (\"retry action row must be in the matrix\") ; assert ! (row . effects . contains (\"Retry\") || row . effects . contains (\"retry\") , \"retry action must declare the Retry effect (I3): {:?}\" , row . effects) ; assert ! (row . effects . contains (\"Attempts\") || row . effects . contains (\"budgeted\") , \"retry action's Retry effect must be budgeted (I4): {:?}\" , row . effects) ; } # [doc = \" The handle and recover bridge rows carry `PolicyRef` for EXPLAIN (C3).\"] # [doc = \" Guard: removing PolicyRef from the driver rows makes this fail.\"] # [test] fn driver_rows_are_policy_ref_explainable () { for row in MATRIX { if row . op . starts_with (\"handle\") || row . op . starts_with (\"recover\") { assert_eq ! (row . explainable , Explainable :: PolicyRef , \"driver row {:?} must carry PolicyRef for EXPLAIN (C3)\" , row . op) ; } } } # [doc = \" All `Total` rows have their error_set contain \\\"Recovered\\\" and \\\"Propagated\\\" (or are\"] # [doc = \" effect-free value ops), confirming I1 at the matrix level.\"] # [doc = \" Guard: a Total row that drops the two-variant guarantee makes this fail.\"] # [test] fn total_driver_rows_name_recovered_and_propagated () { let driver_ops = [\"handle\" , \"recover\"] ; for & prefix in & driver_ops { let row = MATRIX . iter () . find (| r | r . op . starts_with (prefix)) . unwrap_or_else (| | panic ! (\"matrix must contain a row starting with {:?}\" , prefix)) ; assert ! (row . error_set . contains (\"Recovered\") , \"driver op {:?} error_set must name Recovered (I1): {:?}\" , row . op , row . error_set) ; assert ! (row . error_set . contains (\"Propagated\") , \"driver op {:?} error_set must name Propagated (I1): {:?}\" , row . op , row . error_set) ; } } # [doc = \" `cleanup_then_propagate` row records the spec §7-Q4 disposition (cleanup overrun is\"] # [doc = \" recorded, not swallowed).\"] # [doc = \" Guard: removing the §7-Q4 note from the cleanup row makes this fail.\"] # [test] fn cleanup_row_records_overrun_visibility () { let row = MATRIX . iter () . find (| r | r . op . starts_with (\"cleanup_then_propagate\")) . expect (\"cleanup_then_propagate row must be in the matrix\") ; assert ! (row . error_set . contains (\"cleanup_overrun\") || row . error_set . contains (\"recorded\") , \"cleanup_then_propagate row must note the overrun-visibility disposition (spec §7-Q4): {:?}\" , row . error_set) ; } }",
+      "reason": "#[cfg(test)] item — out of scope for this PoC's transpilation surface (excluded from the expressible-fraction denominator, but recorded, never silently skipped)",
+      "item_name": "tests"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/handle.rs",
+      "line": 24,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "use mycelium_core :: GuaranteeStrength ;",
+      "reason": "`use mycelium_core::GuaranteeStrength` — `mycelium_core` is not a sibling module OR sibling phylum transpiled in this same batch (an external crate, `std`, or simply out of this batch's target set). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/handle.rs",
+      "line": 25,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "use serde :: Serialize ;",
+      "reason": "`use serde::Serialize` — `serde` is not a sibling module OR sibling phylum transpiled in this same batch (an external crate, `std`, or simply out of this batch's target set). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/handle.rs",
+      "line": 27,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "use crate :: action :: RecoveryAction ;",
+      "reason": "`use action::RecoveryAction` — `RecoveryAction` is not among sibling `action`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/handle.rs",
+      "line": 28,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "use crate :: effect :: Budgets ;",
+      "reason": "`use effect::Budgets` — `Budgets` is not among sibling `effect`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/handle.rs",
+      "line": 29,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "use crate :: outcome :: { Outcome , Resolution } ;",
+      "reason": "`use outcome::Resolution` — `Resolution` is not among sibling `outcome`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2)",
+      "item_name": "use:Outcome"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/handle.rs",
+      "line": 30,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "use crate :: policy :: RecoveryPolicy ;",
+      "reason": "`use policy::RecoveryPolicy` — `RecoveryPolicy` is not among sibling `policy`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/handle.rs",
+      "line": 33,
+      "col": 1,
+      "category": "WhereClause",
+      "rust_construct": "WhereClause",
+      "snippet": "# [doc = \" Handle an [`Outcome`] under a recovery policy, providing the error's class for rule lookup.\"] # [doc = \"\"] # [doc = \" `class_of` extracts the error's class for policy lookup (never an eval'd string — X1). It\"] # [doc = \" returns an **owned** [`ClassName`] (resolved through the registry at policy-build time; the\"] # [doc = \" returned name is already validated — X1).\"] # [doc = \" `attempt` is called at most `max_attempts` times for a `Retry` action, yielding a new\"] # [doc = \" `(Outcome, GuaranteeStrength)` pair (the strength is the attempt value's honest tag).\"] # [doc = \"\"] # [doc = \" # Never-silent (I1 / C1)\"] # [doc = \"\"] # [doc = \" Every call yields `Recovered | Propagated`; no path drops an error.  The [`Resolution`] type\"] # [doc = \" has no `Dropped` variant — I1 is enforced by the type.\"] # [doc = \"\"] # [doc = \" # Guarantee tags (I2 / FR-R3 / VR-5)\"] # [doc = \"\"] # [doc = \" - `Ok(v)` → `Recovered(v, Exact, None)` — the honest tag for a clean pass-through.\"] # [doc = \" - `Fallback` → `Recovered(v, Declared, policy_ref)` — honest floor for a substitution.\"] # [doc = \" - `Retry` success → `Recovered(v, attempt_tag, policy_ref)` — inherits the attempt's tag.\"] # [doc = \" - `Retry` exhausted → `Propagated(original_error, policy_ref, cleanup_overrun: false)`.\"] # [doc = \" - `Escalate` → `Propagated(error, policy_ref, cleanup_overrun: false)`.\"] # [doc = \" - `CleanupThenPropagate` → `Propagated(error, policy_ref, cleanup_overrun: <bool>)`.\"] # [doc = \" - No matching rule → `Propagated(error, None, cleanup_overrun: false)`.\"] # [doc = \"\"] # [doc = \" # Effects (C6 / I3 / I4)\"] # [doc = \"\"] # [doc = \" - `Retry` consumes `EffectKind::Retry` once per attempt from `budgets`. Budget overrun →\"] # [doc = \"   immediate `Propagated(original_error)`.\"] # [doc = \" - `CleanupThenPropagate` consumes the action's declared `effect` once. A budget overrun sets\"] # [doc = \"   `cleanup_overrun: true` in the `Propagated` outcome (spec §7-Q4 disposition: record, not\"] # [doc = \"   swallow).\"] # [doc = \" - `Fallback` and `Escalate` are effect-free.\"] # [doc = \"\"] # [doc = \" # Policy identity (banked guard #5)\"] # [doc = \"\"] # [doc = \" When a rule matches, the acting [`PolicyRef`](crate::policy::PolicyRef) is computed via\"] # [doc = \" [`RecoveryPolicy::policy_ref`] (a stable serde_json encoding — not `Debug`).  If the fallback\"] # [doc = \" value's `serde::Serialize` impl fails (e.g. a `NaN` float), the function propagates the\"] # [doc = \" original error with `policy: None` — it refuses to apply the action without an established\"] # [doc = \" policy identity (never-silent: the error is never dropped, I1).  This situation is a\"] # [doc = \" configuration error in the caller's `T: Serialize` impl; the explicit `Propagated` makes it\"] # [doc = \" diagnosable.\"] # [must_use] pub fn handle_classified < T , E > (outcome : Outcome < T , E > , policy : & RecoveryPolicy < T > , budgets : & mut Budgets , class_of : impl Fn (& E) -> ClassName , mut attempt : impl FnMut () -> (Outcome < T , E > , GuaranteeStrength) ,) -> Resolution < T , E > where T : Serialize + std :: fmt :: Debug + Clone + Send + Sync + 'static , { let error = match outcome { Outcome :: Ok (value) => { return Resolution :: Recovered { value , tag : GuaranteeStrength :: Exact , policy : None , } ; } Outcome :: Err (e) => e , } ; let class = class_of (& error) ; let Some (action) = policy . action_for (& class) else { return Resolution :: Propagated { error , policy : None , cleanup_overrun : false , } ; } ; let pref = match policy . policy_ref () { Ok (r) => Some (r) , Err (_) => { return Resolution :: Propagated { error , policy : None , cleanup_overrun : false , } ; } } ; match action { RecoveryAction :: Fallback { value } => { Resolution :: Recovered { value : * value . clone () , tag : GuaranteeStrength :: Declared , policy : pref , } } RecoveryAction :: Retry { max_attempts } => { let max = * max_attempts ; for _ in 0 .. max { if budgets . consume (mycelium_interp :: budget :: EffectKind :: Retry , 1) . is_err () { return Resolution :: Propagated { error , policy : pref , cleanup_overrun : false , } ; } let (next_outcome , attempt_tag) = attempt () ; if let Outcome :: Ok (value) = next_outcome { return Resolution :: Recovered { value , tag : attempt_tag , policy : pref , } ; } } Resolution :: Propagated { error , policy : pref , cleanup_overrun : false , } } RecoveryAction :: Escalate { to_class } => { let _ = to_class ; Resolution :: Propagated { error , policy : pref , cleanup_overrun : false , } } RecoveryAction :: CleanupThenPropagate { effect } => { let cleanup_overrun = budgets . consume (effect . clone () , 1) . is_err () ; Resolution :: Propagated { error , policy : pref , cleanup_overrun , } } } }",
+      "reason": "a `where` clause has no Mycelium equivalent",
+      "item_name": "handle_classified"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/handle.rs",
+      "line": 192,
+      "col": 1,
+      "category": "WhereClause",
+      "rust_construct": "WhereClause",
+      "snippet": "# [doc = \" Convenience: bridge a `Result<T, E>` into a [`Resolution<T, E>`] under a policy.\"] # [doc = \"\"] # [doc = \" This is [`handle_classified`] with a `Result` input.  `RecoverOutcome<T, E>` is\"] # [doc = \" `Resolution<T, E>` — the concrete shape that resolves `error.md` §7-Q1 (no drop variant, I1;\"] # [doc = \" honest inherited tag, I2).\"] # [must_use] pub fn recover_classified < T , E > (result : Result < T , E > , policy : & RecoveryPolicy < T > , budgets : & mut Budgets , class_of : impl Fn (& E) -> ClassName , attempt : impl FnMut () -> (Outcome < T , E > , GuaranteeStrength) ,) -> Resolution < T , E > where T : Serialize + std :: fmt :: Debug + Clone + Send + Sync + 'static , { handle_classified (Outcome :: from_result (result) , policy , budgets , class_of , attempt ,) }",
+      "reason": "a `where` clause has no Mycelium equivalent",
+      "item_name": "recover_classified"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 1,
+      "col": 1,
+      "category": "InnerAttr",
+      "rust_construct": "InnerAttr",
+      "snippet": "# ! [forbid (unsafe_code)]",
+      "reason": "crate/file-level inner attributes (#![...]) are not transpiled (no nodule-header equivalent for these Rust-specific directives)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 75,
+      "col": 1,
+      "category": "ModuleDecl",
+      "rust_construct": "ModuleDecl",
+      "snippet": "pub mod action ;",
+      "reason": "external `mod foo;` declaration — file-linkage, not translatable library surface (Mycelium's nodule-per-file model makes the module tree implicit in the file layout; the sibling file transpiles as its own nodule). Excluded from the expressible-fraction denominator, recorded not dropped",
+      "item_name": "action"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 76,
+      "col": 1,
+      "category": "ModuleDecl",
+      "rust_construct": "ModuleDecl",
+      "snippet": "pub mod effect ;",
+      "reason": "external `mod foo;` declaration — file-linkage, not translatable library surface (Mycelium's nodule-per-file model makes the module tree implicit in the file layout; the sibling file transpiles as its own nodule). Excluded from the expressible-fraction denominator, recorded not dropped",
+      "item_name": "effect"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 77,
+      "col": 1,
+      "category": "ModuleDecl",
+      "rust_construct": "ModuleDecl",
+      "snippet": "pub mod guarantee_matrix ;",
+      "reason": "external `mod foo;` declaration — file-linkage, not translatable library surface (Mycelium's nodule-per-file model makes the module tree implicit in the file layout; the sibling file transpiles as its own nodule). Excluded from the expressible-fraction denominator, recorded not dropped",
+      "item_name": "guarantee_matrix"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 78,
+      "col": 1,
+      "category": "ModuleDecl",
+      "rust_construct": "ModuleDecl",
+      "snippet": "pub mod handle ;",
+      "reason": "external `mod foo;` declaration — file-linkage, not translatable library surface (Mycelium's nodule-per-file model makes the module tree implicit in the file layout; the sibling file transpiles as its own nodule). Excluded from the expressible-fraction denominator, recorded not dropped",
+      "item_name": "handle"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 79,
+      "col": 1,
+      "category": "ModuleDecl",
+      "rust_construct": "ModuleDecl",
+      "snippet": "pub mod outcome ;",
+      "reason": "external `mod foo;` declaration — file-linkage, not translatable library surface (Mycelium's nodule-per-file model makes the module tree implicit in the file layout; the sibling file transpiles as its own nodule). Excluded from the expressible-fraction denominator, recorded not dropped",
+      "item_name": "outcome"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 80,
+      "col": 1,
+      "category": "ModuleDecl",
+      "rust_construct": "ModuleDecl",
+      "snippet": "pub mod policy ;",
+      "reason": "external `mod foo;` declaration — file-linkage, not translatable library surface (Mycelium's nodule-per-file model makes the module tree implicit in the file layout; the sibling file transpiles as its own nodule). Excluded from the expressible-fraction denominator, recorded not dropped",
+      "item_name": "policy"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 81,
+      "col": 1,
+      "category": "ModuleDecl",
+      "rust_construct": "ModuleDecl",
+      "snippet": "pub mod registry ;",
+      "reason": "external `mod foo;` declaration — file-linkage, not translatable library surface (Mycelium's nodule-per-file model makes the module tree implicit in the file layout; the sibling file transpiles as its own nodule). Excluded from the expressible-fraction denominator, recorded not dropped",
+      "item_name": "registry"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 83,
+      "col": 1,
+      "category": "TestItem",
+      "rust_construct": "TestItem",
+      "snippet": "# [cfg (test)] mod tests ;",
+      "reason": "#[cfg(test)] item — out of scope for this PoC's transpilation surface (excluded from the expressible-fraction denominator, but recorded, never silently skipped)",
+      "item_name": "tests"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 88,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "pub use action :: RecoveryAction ;",
+      "reason": "`use action::RecoveryAction` — `RecoveryAction` is not among sibling `action`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 89,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "pub use effect :: { check_effects , Budgets , EffectBudget , EffectBudgetExhausted , EffectKind , EffectSet , UndeclaredEffect , } ;",
+      "reason": "`use effect::check_effects` — `check_effects` is not among sibling `effect`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2); `use effect::Budgets` — `Budgets` is not among sibling `effect`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2); `use effect::EffectBudget` — `EffectBudget` is not among sibling `effect`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2); `use effect::EffectBudgetExhausted` — `EffectBudgetExhausted` is not among sibling `effect`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2); `use effect::EffectKind` — `EffectKind` is not among sibling `effect`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2); `use effect::EffectSet` — `EffectSet` is not among sibling `effect`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2); `use effect::UndeclaredEffect` — `UndeclaredEffect` is not among sibling `effect`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 93,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "pub use handle :: { handle_classified , recover_classified } ;",
+      "reason": "`use handle::handle_classified` — `handle_classified` is not among sibling `handle`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2); `use handle::recover_classified` — `recover_classified` is not among sibling `handle`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 94,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "pub use outcome :: { DiagError , Outcome , Resolution } ;",
+      "reason": "`use outcome::DiagError` — `DiagError` is not among sibling `outcome`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2)",
+      "item_name": "use:Outcome"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 94,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "pub use outcome :: { DiagError , Outcome , Resolution } ;",
+      "reason": "`use outcome::Resolution` — `Resolution` is not among sibling `outcome`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2)",
+      "item_name": "use:Outcome"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 95,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "pub use policy :: { policy_effects , PolicyHashError , PolicyRef , RecoveryPolicy } ;",
+      "reason": "`use policy::policy_effects` — `policy_effects` is not among sibling `policy`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2); `use policy::PolicyHashError` — `PolicyHashError` is not among sibling `policy`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2); `use policy::PolicyRef` — `PolicyRef` is not among sibling `policy`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2); `use policy::RecoveryPolicy` — `RecoveryPolicy` is not among sibling `policy`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 96,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "pub use registry :: { ClassName , ClassRegistry , UnknownClass } ;",
+      "reason": "`use registry::ClassRegistry` — `ClassRegistry` is not among sibling `registry`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2)",
+      "item_name": "co-include:ClassName,UnknownClass"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/lib.rs",
+      "line": 98,
+      "col": 1,
+      "category": "Other",
+      "rust_construct": "Other",
+      "snippet": "# [doc = \" `RecoverOutcome<T, E>` is `Resolution<T, E>` — the concrete shape that resolves\"] # [doc = \" `error.md` §7-Q1 (the `std.error` bridge signature owned here).\"] # [doc = \"\"] # [doc = \" The bridge is [`handle_classified`] itself; `RecoverOutcome = Recovered | Propagated`, no\"] # [doc = \" drop variant (I1), honest inherited tag (I2).  `error`'s contract holds verbatim.\"] pub type RecoverOutcome < T , E > = Resolution < T , E > ;",
+      "reason": "`type RecoverOutcome = ...` alias — Mycelium's `type_item` always introduces a new nominal sum type via `'=' constructor ('|' constructor)*`; a bare alias to an existing type would fabricate a sum type where none exists semantically",
+      "item_name": "RecoverOutcome"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/outcome.rs",
+      "line": 8,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "use mycelium_core :: GuaranteeStrength ;",
+      "reason": "`use mycelium_core::GuaranteeStrength` — `mycelium_core` is not a sibling module OR sibling phylum transpiled in this same batch (an external crate, `std`, or simply out of this batch's target set). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/outcome.rs",
+      "line": 9,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "use mycelium_diag :: Diag ;",
+      "reason": "`use mycelium_diag::Diag` — `mycelium_diag` is not a sibling module OR sibling phylum transpiled in this same batch (an external crate, `std`, or simply out of this batch's target set). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/outcome.rs",
+      "line": 11,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "use crate :: policy :: PolicyRef ;",
+      "reason": "`use policy::PolicyRef` — `PolicyRef` is not among sibling `policy`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/outcome.rs",
+      "line": 13,
+      "col": 1,
+      "category": "DeriveAttr",
+      "rust_construct": "DeriveAttr",
+      "snippet": "# [doc = \" The input result sum `Ok(T) | Err(E)` (RFC-0014 §4.1).\"] # [doc = \"\"] # [doc = \" Errors propagate by default — there is no silent unwinding; an `Err` must be explicitly acted\"] # [doc = \" on by a recovery policy or it continues to surface.\"] # [doc = \"\"] # [doc = \" This is the **input** type to [`crate::handle`] and `crate::recover`.  The `E` error payload\"] # [doc = \" should carry a [`Diag`] diagnostic record per FR-R5.\"] # [derive (Debug , Clone , PartialEq)] pub enum Outcome < T , E > { # [doc = \" The operation succeeded.\"] Ok (T) , # [doc = \" The operation failed with an explicit propagating error (never a silent unwind).\"] Err (E) , }",
+      "reason": "enum `Outcome` derive(Debug): generic enum — a derived Show impl for a generic type needs DN-130's generic-trait-instance mechanism, out of this leaf's scope (ONESHOT C2 / DN-128 enum half)",
+      "item_name": "Outcome"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/outcome.rs",
+      "line": 13,
+      "col": 1,
+      "category": "DeriveSatisfied",
+      "rust_construct": "DeriveSatisfied",
+      "snippet": "# [doc = \" The input result sum `Ok(T) | Err(E)` (RFC-0014 §4.1).\"] # [doc = \"\"] # [doc = \" Errors propagate by default — there is no silent unwinding; an `Err` must be explicitly acted\"] # [doc = \" on by a recovery policy or it continues to surface.\"] # [doc = \"\"] # [doc = \" This is the **input** type to [`crate::handle`] and `crate::recover`.  The `E` error payload\"] # [doc = \" should carry a [`Diag`] diagnostic record per FR-R5.\"] # [derive (Debug , Clone , PartialEq)] pub enum Outcome < T , E > { # [doc = \" The operation succeeded.\"] Ok (T) , # [doc = \" The operation failed with an explicit propagating error (never a silent unwind).\"] Err (E) , }",
+      "reason": "enum `Outcome` derive(Clone) is a satisfied no-op under Mycelium's value semantics (ADR-003 — every value already copies structurally; DN-128 §6.1) — not emitted as an impl, not a gap",
+      "item_name": "Outcome"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/outcome.rs",
+      "line": 13,
+      "col": 1,
+      "category": "DeriveAttr",
+      "rust_construct": "DeriveAttr",
+      "snippet": "# [doc = \" The input result sum `Ok(T) | Err(E)` (RFC-0014 §4.1).\"] # [doc = \"\"] # [doc = \" Errors propagate by default — there is no silent unwinding; an `Err` must be explicitly acted\"] # [doc = \" on by a recovery policy or it continues to surface.\"] # [doc = \"\"] # [doc = \" This is the **input** type to [`crate::handle`] and `crate::recover`.  The `E` error payload\"] # [doc = \" should carry a [`Diag`] diagnostic record per FR-R5.\"] # [derive (Debug , Clone , PartialEq)] pub enum Outcome < T , E > { # [doc = \" The operation succeeded.\"] Ok (T) , # [doc = \" The operation failed with an explicit propagating error (never a silent unwind).\"] Err (E) , }",
+      "reason": "enum `Outcome` derive(PartialEq): generic enum — a derived equality fn for a generic type needs DN-130's generic-instance mechanism, out of this leaf's scope (ONESHOT C2 / DN-128 enum half)",
+      "item_name": "Outcome"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/outcome.rs",
+      "line": 28,
+      "col": 1,
+      "category": "Impl",
+      "rust_construct": "Impl",
+      "snippet": "impl < T , E > Outcome < T , E > { # [doc = \" Construct from a standard `Result`.\"] pub fn from_result (r : Result < T , E >) -> Self { match r { Result :: Ok (v) => Outcome :: Ok (v) , Result :: Err (e) => Outcome :: Err (e) , } } # [doc = \" Convert to a standard `Result`.\"] pub fn into_result (self) -> Result < T , E > { match self { Outcome :: Ok (v) => Result :: Ok (v) , Outcome :: Err (e) => Result :: Err (e) , } } # [doc = \" Whether this is `Ok`.\"] # [must_use] pub fn is_ok (& self) -> bool { matches ! (self , Outcome :: Ok (_)) } # [doc = \" Whether this is `Err`.\"] # [must_use] pub fn is_err (& self) -> bool { matches ! (self , Outcome :: Err (_)) } }",
+      "reason": "no member of this impl block could be transpiled (4 sub-issue(s)): impl method `from_result` body: qualified/associated-function call `Outcome :: Ok` did not resolve to a known-emitted associated fn — Mycelium calls are bare identifiers, and the only sound surface form for `Type::method(...)` is the mangled `Type__method` name the declaration side already emits for a receiver-less inherent-impl associated fn (DN-34 §8.13/8.14), referenced only when that exact declaration is PROVEN present (same-file, or a resolved M-1084 cross-nodule sibling). A primitive/std associated fn with no emitted decl (e.g. `i128::try_from`), an unresolved type, or a `self`-receiving method (excluded by construction — it stays reachable only from its own bare call site) all gap here rather than fabricate a call (G2/VR-5, DN-133); impl method `into_result` body: qualified/associated-function call `Result :: Ok` did not resolve to a known-emitted associated fn — Mycelium calls are bare identifiers, and the only sound surface form for `Type::method(...)` is the mangled `Type__method` name the declaration side already emits for a receiver-less inherent-impl associated fn (DN-34 §8.13/8.14), referenced only when that exact declaration is PROVEN present (same-file, or a resolved M-1084 cross-nodule sibling). A primitive/std associated fn with no emitted decl (e.g. `i128::try_from`), an unresolved type, or a `self`-receiving method (excluded by construction — it stays reachable only from its own bare call site) all gap here rather than fabricate a call (G2/VR-5, DN-133); impl method `is_ok` body: expression-position macro `matches` — no macro system in this grammar fragment (`write!`/`format!` lower to pure `Bytes` per DN-127/M-1090 WU-3); impl method `is_err` body: expression-position macro `matches` — no macro system in this grammar fragment (`write!`/`format!` lower to pure `Bytes` per DN-127/M-1090 WU-3)",
+      "item_name": "Outcome < T , E >"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/outcome.rs",
+      "line": 58,
+      "col": 1,
+      "category": "Struct",
+      "rust_construct": "Struct",
+      "snippet": "# [doc = \" A diagnosed error value: the error payload `E` bundled with its [`Diag`] record (FR-R5).\"] # [doc = \"\"] # [doc = \" `recover` and `handle` accept a generic `E` but the invariant FR-R5 says that a recovered or\"] # [doc = \" re-propagated error carries a `Diag`.  `DiagError<E>` is the canonical bundling.\"] # [derive (Debug , Clone , PartialEq)] pub struct DiagError < E > { # [doc = \" The structured error value.\"] pub error : E , # [doc = \" The diagnostic record attached to this error (RFC-0013 / FR-R5).\"] pub diag : Diag , }",
+      "reason": "struct `DiagError` uses named fields and references a type not resolvable in-file — emitting it positionally would introduce an unresolved reference that poisons the file's `myc check`; left gapped under the M-1006 resolvability gate (VR-5/G2)",
+      "item_name": "DiagError"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/outcome.rs",
+      "line": 70,
+      "col": 1,
+      "category": "Impl",
+      "rust_construct": "Impl",
+      "snippet": "impl < E > DiagError < E > { # [doc = \" Attach a diagnostic record to an error value.\"] pub fn new (error : E , diag : Diag) -> Self { DiagError { error , diag } } }",
+      "reason": "no member of this impl block could be transpiled (1 sub-issue(s)): impl method `new` body: struct literal `DiagError { .. }` — not an in-file single-ctor struct or enum struct-variant that emits (no constructor to build; a cross-nodule variant is an honest DN-113/DN-134-OQ-2 resolvability gap, never a fabricated out-of-file reference — VR-5/G2)",
+      "item_name": "DiagError < E >"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/outcome.rs",
+      "line": 77,
+      "col": 1,
+      "category": "PayloadVariant",
+      "rust_construct": "PayloadVariant",
+      "snippet": "# [doc = \" The **outcome of handling** an [`Outcome`] under a recovery policy (RFC-0014 §4.2).\"] # [doc = \"\"] # [doc = \" There is **no `Dropped` variant** (I1): a mutant handler that discarded an unmatched error\"] # [doc = \" cannot be expressed using this type.\"] # [doc = \"\"] # [doc = \" - [`Resolution::Recovered`]: the error was replaced by a concrete value, tagged honestly\"] # [doc = \"   (never upgraded — I2/VR-5).\"] # [doc = \" - [`Resolution::Propagated`]: the error continues to surface (possibly transformed); it was\"] # [doc = \"   never discarded.\"] # [doc = \"\"] # [doc = \" Both variants carry the [`PolicyRef`] of the acting policy (if any) so every outcome is\"] # [doc = \" EXPLAIN-able (C3).\"] # [derive (Debug , Clone , PartialEq)] pub enum Resolution < T , E > { # [doc = \" The error was explicitly recovered: a concrete value with an honest, policy-inherited tag.\"] # [doc = \"\"] # [doc = \" # Guarantee tag (I2/VR-5)\"] # [doc = \"\"] # [doc = \" `tag` is **never upgraded** by the policy: it is at most the action's honest ceiling\"] # [doc = \" (`Declared` for a `Fallback`; the attempt's own tag for a `Retry`; `Exact` for a clean\"] # [doc = \" `Ok` pass-through).  The `meet` of the action ceiling and the policy's declared tag is\"] # [doc = \" taken to ensure the tag never rises (FR-R3).\"] Recovered { # [doc = \" The recovered value.\"] value : T , # [doc = \" The honest guarantee tag (meet of the action's ceiling and the policy's tag; ≤ policy\"] # [doc = \" tag; never `Exact` unless the recovered value provably justifies it — I2/VR-5).\"] tag : GuaranteeStrength , # [doc = \" The content-addressed policy that recovered this value (C3 / EXPLAIN-able).\"] policy : Option < PolicyRef > , } , # [doc = \" The error was re-propagated — it never vanished (I1).\"] # [doc = \"\"] # [doc = \" The error may have been transformed (e.g. class-escalated) but it continues to surface.\"] # [doc = \" A budget overrun for a `CleanupThenPropagate` cleanup effect is recorded in\"] # [doc = \" `cleanup_overrun` rather than swallowed (spec §7-Q4 disposition: record it for legibility).\"] Propagated { # [doc = \" The propagating error (possibly transformed/escalated).\"] error : E , # [doc = \" The content-addressed policy that acted, if any (C3 / EXPLAIN-able).\"] policy : Option < PolicyRef > , # [doc = \" Whether a `cleanup_then_propagate` cleanup effect overran its budget (spec §7-Q4).\"] # [doc = \"\"] # [doc = \" `true` means the cleanup was **skipped** because of an `EffectBudgetExhausted`; the\"] # [doc = \" original error propagates regardless.  `false` means either no cleanup was attempted\"] # [doc = \" or the cleanup ran successfully within its budget.\"] cleanup_overrun : bool , } , }",
+      "reason": "enum `Resolution` has a named-field variant referencing a type not resolvable in-file — emitting it positionally would introduce an unresolved reference that poisons the file's `myc check`; left gapped under the M-1006 resolvability gate (VR-5/G2)",
+      "item_name": "Resolution"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/outcome.rs",
+      "line": 127,
+      "col": 1,
+      "category": "Impl",
+      "rust_construct": "Impl",
+      "snippet": "impl < T , E > Resolution < T , E > { # [doc = \" Whether the error was recovered (a value is available).\"] # [must_use] pub fn is_recovered (& self) -> bool { matches ! (self , Resolution :: Recovered { .. }) } # [doc = \" Whether the error was re-propagated (never dropped — I1).\"] # [must_use] pub fn is_propagated (& self) -> bool { matches ! (self , Resolution :: Propagated { .. }) } # [doc = \" The acting `PolicyRef`, if any (C3 / EXPLAIN-able).\"] # [must_use] pub fn policy_ref (& self) -> Option < & PolicyRef > { match self { Resolution :: Recovered { policy , .. } | Resolution :: Propagated { policy , .. } => { policy . as_ref () } } } }",
+      "reason": "no member of this impl block could be transpiled (3 sub-issue(s)): impl method `is_recovered` body: expression-position macro `matches` — no macro system in this grammar fragment (`write!`/`format!` lower to pure `Bytes` per DN-127/M-1090 WU-3); impl method `is_propagated` body: expression-position macro `matches` — no macro system in this grammar fragment (`write!`/`format!` lower to pure `Bytes` per DN-127/M-1090 WU-3); impl method `policy_ref` body: struct-variant pattern `Recovered { .. }` names a constructor with no confirmed in-file layout -- resolved only for an emitted, in-file struct (or, once DN-132's SS5.1 variant-aware `StructLayout` population lands, an in-file enum's named-field variant); never a guessed field-index arity (DN-132 SS5.1/OQ-4, VR-5/G2)",
+      "item_name": "Resolution < T , E >"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/policy.rs",
+      "line": 1,
+      "col": 1,
+      "category": "ReservedWord",
+      "rust_construct": "ReservedWord",
+      "snippet": "nodule std.recover.policy;",
+      "reason": "derived nodule path `std.recover.policy` has segment(s) [policy] colliding with a Mycelium reserved word — emitting them verbatim would fail to parse (`nodule std.recover.policy;` tokenizes the colliding word as a keyword, not an identifier); each colliding segment is escaped with the `_kw` suffix (now `std.recover.policy_kw`) rather than dropped, so distinct source files whose only differing segment is a reserved word (e.g. `l1.fuse` vs `l1.nodule`) stay distinguishable instead of both collapsing onto the same nodule path (G2/VR-5)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/policy.rs",
+      "line": 22,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "use std :: collections :: BTreeMap ;",
+      "reason": "`use std.collections::BTreeMap` — `std.collections` is not a sibling module OR sibling phylum transpiled in this same batch (an external crate, `std`, or simply out of this batch's target set). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/policy.rs",
+      "line": 24,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "use mycelium_core :: ContentHash ;",
+      "reason": "`use mycelium_core::ContentHash` — `mycelium_core` is not a sibling module OR sibling phylum transpiled in this same batch (an external crate, `std`, or simply out of this batch's target set). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/policy.rs",
+      "line": 25,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "use mycelium_interp :: budget :: EffectKind ;",
+      "reason": "`use mycelium_interp.budget::EffectKind` — `mycelium_interp.budget` is not a sibling module OR sibling phylum transpiled in this same batch (an external crate, `std`, or simply out of this batch's target set). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/policy.rs",
+      "line": 26,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "use serde :: Serialize ;",
+      "reason": "`use serde::Serialize` — `serde` is not a sibling module OR sibling phylum transpiled in this same batch (an external crate, `std`, or simply out of this batch's target set). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/policy.rs",
+      "line": 28,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "use crate :: action :: RecoveryAction ;",
+      "reason": "`use action::RecoveryAction` — `RecoveryAction` is not among sibling `action`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/policy.rs",
+      "line": 29,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "use crate :: registry :: { ClassName , ClassRegistry , UnknownClass } ;",
+      "reason": "`use registry::ClassRegistry` — `ClassRegistry` is not among sibling `registry`'s successfully-emitted surface in this batch (the sibling file itself gapped it rather than emitting it). Flagged, not guessed (VR-5/G2)",
+      "item_name": "co-include:ClassName,UnknownClass"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/policy.rs",
+      "line": 31,
+      "col": 1,
+      "category": "Other",
+      "rust_construct": "Other",
+      "snippet": "# [doc = \" The content address of a `RecoveryPolicy` (RFC-0001 §4.6 / ADR-006 / `PolicyRef`).\"] # [doc = \"\"] # [doc = \" A deterministic BLAKE3 hash over the policy's canonical, sorted rules.  Stable across\"] # [doc = \" serialization boundaries and suitable as a cache / deduplication key.\"] pub type PolicyRef = ContentHash ;",
+      "reason": "`type PolicyRef = ...` alias — Mycelium's `type_item` always introduces a new nominal sum type via `'=' constructor ('|' constructor)*`; a bare alias to an existing type would fabricate a sum type where none exists semantically",
+      "item_name": "PolicyRef"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/policy.rs",
+      "line": 37,
+      "col": 1,
+      "category": "Struct",
+      "rust_construct": "Struct",
+      "snippet": "# [doc = \" An error computing the content address of a [`RecoveryPolicy`] (banked guard #5).\"] # [doc = \"\"] # [doc = \" Returned by [`RecoveryPolicy::policy_ref`] when a fallback value cannot be serialized to a\"] # [doc = \" stable canonical form.  This is a configuration error — a fallback value type must implement\"] # [doc = \" [`serde::Serialize`] correctly (i.e. produce a stable, deterministic encoding) for the policy\"] # [doc = \" to be content-addressed.\"] # [doc = \"\"] # [doc = \" # Never-silent (I1 / banked guard #5)\"] # [doc = \"\"] # [doc = \" `policy_ref` refuses to produce a `PolicyRef` rather than silently skipping the offending\"] # [doc = \" value from the hash.  Skipping would cause two policies with different fallback values to\"] # [doc = \" produce identical `PolicyRef`s — a content-address collision (banked guard #5 violation).\"] # [derive (Debug)] pub struct PolicyHashError { # [doc = \" The `serde_json` serialization error.\"] pub source : serde_json :: Error , }",
+      "reason": "struct `PolicyHashError` has a field type with no confirmed mapping (qualified type path `serde_json :: Error` — collapsing to its last segment would risk colliding with an unrelated same-named local type (e.g. `std::cmp::Ordering` vs a local `Ordering`); left an explicit gap rather than guessed (VR-5))",
+      "item_name": "PolicyHashError"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/policy.rs",
+      "line": 55,
+      "col": 1,
+      "category": "Impl",
+      "rust_construct": "Impl",
+      "snippet": "impl std :: fmt :: Display for PolicyHashError { fn fmt (& self , f : & mut std :: fmt :: Formatter < '_ >) -> std :: fmt :: Result { write ! (f , \"cannot compute stable PolicyRef: fallback value serialization failed (serde_json): {}\" , self . source) } }",
+      "reason": "trait-impl of non-prelude trait `Display` — no ambient trait definition and synthetic trait emission is refused (DN-34 §8.8 / DN-122 MVP); gapped the whole impl so the residual cannot file-poison myc-check (G2; express gap-close 2026-07-16)",
+      "item_name": "PolicyHashError"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/policy.rs",
+      "line": 65,
+      "col": 1,
+      "category": "MacroInvocation",
+      "rust_construct": "MacroInvocation",
+      "snippet": "mycelium_std_core :: impl_std_error ! (PolicyHashError , source = | this | { Some (& this . source) }) ;",
+      "reason": "item-position macro invocation — no macro system in this grammar",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/policy.rs",
+      "line": 67,
+      "col": 1,
+      "category": "Struct",
+      "rust_construct": "Struct",
+      "snippet": "# [doc = \" A reified, content-addressed recovery policy.\"] # [doc = \"\"] # [doc = \" Maps a **registry-resolved** [`ClassName`] to a [`RecoveryAction`].  Rules are stored in a\"] # [doc = \" `BTreeMap` (sorted by class name) so the content hash is deterministic and the policy is\"] # [doc = \" diffable / inspectable (C3).\"] # [doc = \"\"] # [doc = \" # EXPLAIN-ability (C3)\"] # [doc = \"\"] # [doc = \" A `RecoveryPolicy` is its own EXPLAIN artifact: the `rules()` iterator exposes every class →\"] # [doc = \" action binding, and [`RecoveryPolicy::policy_ref`] is the stable identity tag embedded in\"] # [doc = \" every [`crate::Resolution`] outcome.\"] # [doc = \"\"] # [doc = \" # Type bound\"] # [doc = \"\"] # [doc = \" The `T` type parameter is the fallback value type — it must be\"] # [doc = \" [`serde::Serialize`] + [`std::fmt::Debug`] + [`Clone`] + `Send + Sync + 'static`.\"] # [doc = \" `serde::Serialize` is required for stable, canonical content hashing of fallback values\"] # [doc = \" (banked guard #5 — `Debug` is not a stable serialization and is not used for hashing).\"] # [derive (Debug , Clone)] pub struct RecoveryPolicy < T > { rules : BTreeMap < ClassName , RecoveryAction < T > > , }",
+      "reason": "struct `RecoveryPolicy` uses named fields and references a type not resolvable in-file — emitting it positionally would introduce an unresolved reference that poisons the file's `myc check`; left gapped under the M-1006 resolvability gate (VR-5/G2)",
+      "item_name": "RecoveryPolicy"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/policy.rs",
+      "line": 90,
+      "col": 1,
+      "category": "GenericBound",
+      "rust_construct": "GenericBound",
+      "snippet": "impl < T > Default for RecoveryPolicy < T > { fn default () -> Self { RecoveryPolicy { rules : BTreeMap :: new () , } } }",
+      "reason": "impl-level generic parameter(s) on a *trait-instance* impl (`impl<..> Trait for ..`) have no confirmed mapping yet — DN-130 (parametric trait-instance heads + coherence) is the unbuilt scope for that case; DN-131 authorizes only the inherent-impl slot",
+      "item_name": "RecoveryPolicy < T >"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/policy.rs",
+      "line": 98,
+      "col": 1,
+      "category": "GenericBound",
+      "rust_construct": "GenericBound",
+      "snippet": "impl < T : Serialize + std :: fmt :: Debug + Clone + Send + Sync + 'static > RecoveryPolicy < T > { # [doc = \" An empty policy (no rules).\"] # [must_use] pub fn new () -> Self { RecoveryPolicy :: default () } # [doc = \" Add an `on <class> => <action>` rule, resolving `class` **and** any `Escalate.to_class`\"] # [doc = \" through `registry` (X1 — both class names are registry-validated, never raw strings).\"] # [doc = \"\"] # [doc = \" Replaces and returns any prior action for the class.  An unknown class (either the LHS\"] # [doc = \" `class` or an `Escalate` target) is an explicit configuration error ([`UnknownClass`]),\"] # [doc = \" never a silent fabrication (G2).\"] # [doc = \"\"] # [doc = \" # Errors\"] # [doc = \"\"] # [doc = \" Returns [`UnknownClass`] if:\"] # [doc = \" - `class` is not in the registry (LHS class), **or**\"] # [doc = \" - the action is [`RecoveryAction::Escalate`] and `to_class` is not in the registry\"] # [doc = \"   (X1 — the escalation target must be a registered class, never an unvalidated string).\"] pub fn on (& mut self , registry : & ClassRegistry , class : & str , action : RecoveryAction < T > ,) -> Result < Option < RecoveryAction < T > > , UnknownClass > { let name = registry . resolve (class) ? ; if let RecoveryAction :: Escalate { ref to_class } = action { if ! registry . contains (to_class) { return Err (UnknownClass { name : to_class . clone () , }) ; } } Ok (self . rules . insert (name , action)) } # [doc = \" The recovery action for a resolved class, if any.\"] # [must_use] pub fn action_for (& self , class : & ClassName) -> Option < & RecoveryAction < T > > { self . rules . get (class) } # [doc = \" The rules in deterministic (class-sorted) order (C3 — inspectable, diffable).\"] pub fn rules (& self) -> impl Iterator < Item = (& ClassName , & RecoveryAction < T >) > { self . rules . iter () } # [doc = \" Whether the policy has no rules.\"] # [must_use] pub fn is_empty (& self) -> bool { self . rules . is_empty () } # [doc = \" The **content address** of this policy (RFC-0005 `PolicyRef`; ADR-006).\"] # [doc = \"\"] # [doc = \" A deterministic BLAKE3 over the canonical sorted rules; diffable and identity-stable.\"] # [doc = \" Every outcome returned by [`crate::handle`] carries this `PolicyRef` when a rule was\"] # [doc = \" applied, so every outcome can be traced back to the exact policy that acted (C3).\"] # [doc = \"\"] # [doc = \" # Honesty (banked guard #5)\"] # [doc = \"\"] # [doc = \" All hashed fields use stable, canonical encodings:\"] # [doc = \" - Class names are registry-resolved strings (X1).\"] # [doc = \" - Integer action parameters (`max_attempts`) are hashed as little-endian bytes.\"] # [doc = \" - `EffectKind` values are hashed via their `Display` string.\"] # [doc = \" - Fallback values are serialized with **`serde_json::to_vec`** — a canonical, deterministic\"] # [doc = \"   encoding that is stable across Rust versions and implementations.  `Debug` is **not** used:\"] # [doc = \"   `Debug` is not a stable serialization format and its output can vary between Rust versions\"] # [doc = \"   or custom implementations, making content-addressed identity unreliable.\"] # [doc = \" - The rule count is hashed before iterating so a length-1 policy for class `\\\"ab\\\"` and a\"] # [doc = \"   length-2 policy for classes `\\\"a\\\"` / `\\\"b\\\"` do not collide.\"] # [doc = \"\"] # [doc = \" # Errors\"] # [doc = \"\"] # [doc = \" Returns [`PolicyHashError`] if a fallback value cannot be serialized by `serde_json`.\"] # [doc = \" This is a configuration error — a value type whose `serde::Serialize` impl fails\"] # [doc = \" (e.g. contains a `NaN` float that `serde_json` refuses to encode) cannot participate in\"] # [doc = \" content-addressed policy identity.  Returning `Err` rather than silently skipping the\"] # [doc = \" value is the only correct behavior: skipping would allow two policies with different\"] # [doc = \" fallback values to produce the same `PolicyRef` — a content-address collision (banked\"] # [doc = \" guard #5 / G2 — never silent).\"] pub fn policy_ref (& self) -> Result < PolicyRef , PolicyHashError > { let mut h = blake3 :: Hasher :: new () ; let blob = | hasher : & mut blake3 :: Hasher , bytes : & [u8] | { hasher . update (& (bytes . len () as u64) . to_le_bytes ()) ; hasher . update (bytes) ; } ; blob (& mut h , b\"mycelium.recovery-policy.v1\") ; h . update (& (self . rules . len () as u64) . to_le_bytes ()) ; for (class , action) in & self . rules { blob (& mut h , class . as_str () . as_bytes ()) ; match action { RecoveryAction :: Fallback { value } => { h . update (& [0u8]) ; let bytes = serde_json :: to_vec (value . as_ref ()) . map_err (| e | PolicyHashError { source : e }) ? ; blob (& mut h , & bytes) ; } RecoveryAction :: Retry { max_attempts } => { h . update (& [1u8]) ; h . update (& max_attempts . to_le_bytes ()) ; } RecoveryAction :: Escalate { to_class } => { h . update (& [2u8]) ; blob (& mut h , to_class . as_bytes ()) ; } RecoveryAction :: CleanupThenPropagate { effect } => { h . update (& [3u8]) ; blob (& mut h , effect . to_string () . as_bytes ()) ; } } } let hex = h . finalize () . to_hex () ; Ok (ContentHash :: from_parts (\"blake3\" , hex . as_str ()) . expect (\"blake3 hex is always a valid content hash\")) } }",
+      "reason": "impl type parameter `T` carries a bound with no confirmed mapping (a lifetime bound or another non-trait bound form) — DN-131 v1 covers plain trait-name bounds only",
+      "item_name": "RecoveryPolicy < T >"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/policy.rs",
+      "line": 238,
+      "col": 1,
+      "category": "WhereClause",
+      "rust_construct": "WhereClause",
+      "snippet": "# [doc = \" The declared, closed effect set for a policy (I3 / RFC-0014 §4.5).\"] # [doc = \"\"] # [doc = \" Returns the set of `EffectKind`s that the policy's actions may perform.  Used by\"] # [doc = \" [`crate::effect::check_effects`] to enforce I3 (no undeclared effect).\"] pub fn policy_effects < T > (policy : & RecoveryPolicy < T >) -> std :: collections :: BTreeSet < EffectKind > where T : Serialize + std :: fmt :: Debug + Clone + Send + Sync + 'static , { let mut set = std :: collections :: BTreeSet :: new () ; for (_ , action) in policy . rules () { match action { RecoveryAction :: Retry { .. } => { set . insert (EffectKind :: Retry) ; } RecoveryAction :: CleanupThenPropagate { effect } => { set . insert (effect . clone ()) ; } RecoveryAction :: Fallback { .. } | RecoveryAction :: Escalate { .. } => { } } } set }",
+      "reason": "a `where` clause has no Mycelium equivalent",
+      "item_name": "policy_effects"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/registry.rs",
+      "line": 11,
+      "col": 1,
+      "category": "Import",
+      "rust_construct": "Import",
+      "snippet": "use std :: collections :: BTreeSet ;",
+      "reason": "`use std.collections::BTreeSet` — `std.collections` is not a sibling module OR sibling phylum transpiled in this same batch (an external crate, `std`, or simply out of this batch's target set). Flagged, not guessed (VR-5/G2)",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/registry.rs",
+      "line": 13,
+      "col": 1,
+      "category": "DeriveSatisfied",
+      "rust_construct": "DeriveSatisfied",
+      "snippet": "# [doc = \" A registry-resolved error class name (RFC-0013 §4.5 — X1).\"] # [doc = \"\"] # [doc = \" Opaque by construction: the only way to obtain a [`ClassName`] is through\"] # [doc = \" [`ClassRegistry::resolve`], which checks the name exists. This makes \\\"unknown class\\\" a static\"] # [doc = \" impossibility once a `ClassName` is in hand.\"] # [derive (Debug , Clone , PartialEq , Eq , PartialOrd , Ord , Hash)] pub struct ClassName (String) ;",
+      "reason": "struct `ClassName` derive(Clone) is a satisfied no-op under Mycelium's value semantics (ADR-003 — every value already copies structurally; DN-128 §6.1) — not emitted as an impl, not a gap",
+      "item_name": "ClassName"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/registry.rs",
+      "line": 13,
+      "col": 1,
+      "category": "DeriveAttr",
+      "rust_construct": "DeriveAttr",
+      "snippet": "# [doc = \" A registry-resolved error class name (RFC-0013 §4.5 — X1).\"] # [doc = \"\"] # [doc = \" Opaque by construction: the only way to obtain a [`ClassName`] is through\"] # [doc = \" [`ClassRegistry::resolve`], which checks the name exists. This makes \\\"unknown class\\\" a static\"] # [doc = \" impossibility once a `ClassName` is in hand.\"] # [derive (Debug , Clone , PartialEq , Eq , PartialOrd , Ord , Hash)] pub struct ClassName (String) ;",
+      "reason": "struct `ClassName` derive(...) names Eq, Ord not in the DN-128 standard-derive set this leaf builds (Debug/Default/Clone/Copy/PartialEq/PartialOrd/Hash all recognized; bare Eq/Ord are deliberately NOT recognized — see emit/derives/mod.rs::TABLE's doc for why) — dropped, no confirmed Mycelium surface",
+      "item_name": "ClassName"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/registry.rs",
+      "line": 21,
+      "col": 1,
+      "category": "DeriveAttr",
+      "rust_construct": "DeriveAttr",
+      "snippet": "impl ClassName { # [doc = \" The string representation of this name (for display and hashing only — not for equality).\"] # [must_use] pub fn as_str (& self) -> & str { & self . 0 } }",
+      "reason": "dropped non-doc attribute(s) on method `as_str`: # [must_use]",
+      "item_name": "impl ClassName"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/registry.rs",
+      "line": 29,
+      "col": 1,
+      "category": "Impl",
+      "rust_construct": "Impl",
+      "snippet": "impl std :: fmt :: Display for ClassName { fn fmt (& self , f : & mut std :: fmt :: Formatter < '_ >) -> std :: fmt :: Result { f . write_str (& self . 0) } }",
+      "reason": "trait-impl of non-prelude trait `Display` — no ambient trait definition and synthetic trait emission is refused (DN-34 §8.8 / DN-122 MVP); gapped the whole impl so the residual cannot file-poison myc-check (G2; express gap-close 2026-07-16)",
+      "item_name": "ClassName"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/registry.rs",
+      "line": 35,
+      "col": 1,
+      "category": "NamedFieldDrop",
+      "rust_construct": "NamedFieldDrop",
+      "snippet": "# [doc = \" The explicit error returned by [`ClassRegistry::resolve`] when a name is not registered (X1).\"] # [doc = \"\"] # [doc = \" This is a configuration error, not a runtime panic — the caller must handle it explicitly.\"] # [derive (Debug , Clone , PartialEq , Eq)] pub struct UnknownClass { # [doc = \" The attempted class name.\"] pub name : String , }",
+      "reason": "struct `UnknownClass` named field(s) `name` emitted positionally as `UnknownClass(Bytes)` — Mycelium's `constructor` is positional-only (no record surface); product structure preserved, field names dropped (matches `lib/std/*.myc` hand-ports)",
+      "item_name": "UnknownClass"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/registry.rs",
+      "line": 35,
+      "col": 1,
+      "category": "DeriveSatisfied",
+      "rust_construct": "DeriveSatisfied",
+      "snippet": "# [doc = \" The explicit error returned by [`ClassRegistry::resolve`] when a name is not registered (X1).\"] # [doc = \"\"] # [doc = \" This is a configuration error, not a runtime panic — the caller must handle it explicitly.\"] # [derive (Debug , Clone , PartialEq , Eq)] pub struct UnknownClass { # [doc = \" The attempted class name.\"] pub name : String , }",
+      "reason": "struct `UnknownClass` derive(Clone) is a satisfied no-op under Mycelium's value semantics (ADR-003 — every value already copies structurally; DN-128 §6.1) — not emitted as an impl, not a gap",
+      "item_name": "UnknownClass"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/registry.rs",
+      "line": 35,
+      "col": 1,
+      "category": "DeriveAttr",
+      "rust_construct": "DeriveAttr",
+      "snippet": "# [doc = \" The explicit error returned by [`ClassRegistry::resolve`] when a name is not registered (X1).\"] # [doc = \"\"] # [doc = \" This is a configuration error, not a runtime panic — the caller must handle it explicitly.\"] # [derive (Debug , Clone , PartialEq , Eq)] pub struct UnknownClass { # [doc = \" The attempted class name.\"] pub name : String , }",
+      "reason": "struct `UnknownClass` derive(...) names Eq not in the DN-128 standard-derive set this leaf builds (Debug/Default/Clone/Copy/PartialEq/PartialOrd/Hash all recognized; bare Eq/Ord are deliberately NOT recognized — see emit/derives/mod.rs::TABLE's doc for why) — dropped, no confirmed Mycelium surface",
+      "item_name": "UnknownClass"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/registry.rs",
+      "line": 44,
+      "col": 1,
+      "category": "Impl",
+      "rust_construct": "Impl",
+      "snippet": "impl std :: fmt :: Display for UnknownClass { fn fmt (& self , f : & mut std :: fmt :: Formatter < '_ >) -> std :: fmt :: Result { write ! (f , \"unknown error class {:?}: not in the registry (RFC-0013 §4.5 X1); \\\n             register it first or check the spelling\" , self . name) } }",
+      "reason": "trait-impl of non-prelude trait `Display` — no ambient trait definition and synthetic trait emission is refused (DN-34 §8.8 / DN-122 MVP); gapped the whole impl so the residual cannot file-poison myc-check (G2; express gap-close 2026-07-16)",
+      "item_name": "UnknownClass"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/registry.rs",
+      "line": 55,
+      "col": 1,
+      "category": "MacroInvocation",
+      "rust_construct": "MacroInvocation",
+      "snippet": "mycelium_std_core :: impl_std_error ! (UnknownClass) ;",
+      "reason": "item-position macro invocation — no macro system in this grammar",
+      "item_name": null
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/registry.rs",
+      "line": 57,
+      "col": 1,
+      "category": "Struct",
+      "rust_construct": "Struct",
+      "snippet": "# [doc = \" A simple, append-only **error-class registry** (RFC-0013 §4.5 / X1).\"] # [doc = \"\"] # [doc = \" A class name is resolved only if it has been explicitly registered; unregistered names return\"] # [doc = \" [`UnknownClass`] — never a silent fabrication (G2).\"] # [doc = \"\"] # [doc = \" # Design note\"] # [doc = \" This is the Rust-first scoped form of the shared registry that `std.diag` (M-510) owns in the\"] # [doc = \" full runtime. The M-510 leaf will provide the canonical form; this one lives here so\"] # [doc = \" `std.recover` is buildable and testable in isolation. FLAG to orchestrator: integration seam\"] # [doc = \" between `mycelium-std-diag`'s `ClassRegistry` and this one must be reconciled once M-510\"] # [doc = \" lands.\"] # [derive (Debug , Clone , Default)] pub struct ClassRegistry { names : BTreeSet < String > , }",
+      "reason": "struct `ClassRegistry` uses named fields and references a type not resolvable in-file — emitting it positionally would introduce an unresolved reference that poisons the file's `myc check`; left gapped under the M-1006 resolvability gate (VR-5/G2)",
+      "item_name": "ClassRegistry"
+    },
+    {
+      "file": "/root/git/isolated/mycelium/crates/mycelium-std-recover/src/registry.rs",
+      "line": 73,
+      "col": 1,
+      "category": "Impl",
+      "rust_construct": "Impl",
+      "snippet": "impl ClassRegistry { # [doc = \" An empty registry (no classes registered yet).\"] # [must_use] pub fn new () -> Self { ClassRegistry :: default () } # [doc = \" Register a class name. Idempotent — registering the same name twice is a no-op.\"] pub fn register (& mut self , name : impl Into < String >) { self . names . insert (name . into ()) ; } # [doc = \" Builder: register a name.\"] # [must_use] pub fn with (mut self , name : impl Into < String >) -> Self { self . register (name) ; self } # [doc = \" Resolve a string to a [`ClassName`] if it is registered.\"] # [doc = \"\"] # [doc = \" # Errors\"] # [doc = \" Returns [`UnknownClass`] if `name` is not in the registry (X1 — never an eval'd string).\"] pub fn resolve (& self , name : & str) -> Result < ClassName , UnknownClass > { if self . names . contains (name) { Ok (ClassName (name . to_owned ())) } else { Err (UnknownClass { name : name . to_owned () , }) } } # [doc = \" Whether a name is registered.\"] # [must_use] pub fn contains (& self , name : & str) -> bool { self . names . contains (name) } }",
+      "reason": "no member of this impl block could be transpiled (5 sub-issue(s)): impl method `new` body: qualified/associated-function call `ClassRegistry :: default` did not resolve to a known-emitted associated fn — Mycelium calls are bare identifiers, and the only sound surface form for `Type::method(...)` is the mangled `Type__method` name the declaration side already emits for a receiver-less inherent-impl associated fn (DN-34 §8.13/8.14), referenced only when that exact declaration is PROVEN present (same-file, or a resolved M-1084 cross-nodule sibling). A primitive/std associated fn with no emitted decl (e.g. `i128::try_from`), an unresolved type, or a `self`-receiving method (excluded by construction — it stays reachable only from its own bare call site) all gap here rather than fabricate a call (G2/VR-5, DN-133); impl method `register` signature: unsupported Rust type form `impl Into < String >`; impl method `with` signature: unsupported Rust type form `impl Into < String >`; impl method `resolve` body: Rust `.contains()` has no verified bare-call kernel prim mapping in this pipeline; desugaring to `contains(recv, …)` would fabricate an unknown prim — gapped never-silently (M-1037, G2/VR-5); impl method `contains` body: Rust `.contains()` has no verified bare-call kernel prim mapping in this pipeline; desugaring to `contains(recv, …)` would fabricate an unknown prim — gapped never-silently (M-1037, G2/VR-5)",
+      "item_name": "ClassRegistry"
+    }
+  ],
+  "category_counts": {
+    "DeriveAttr": 6,
+    "DeriveSatisfied": 10,
+    "GenericBound": 2,
+    "Impl": 8,
+    "Import": 26,
+    "InnerAttr": 1,
+    "MacroInvocation": 3,
+    "ModuleDecl": 7,
+    "MultiStmtBody": 1,
+    "NamedFieldDrop": 2,
+    "Other": 4,
+    "PayloadVariant": 2,
+    "ReservedWord": 1,
+    "Struct": 5,
+    "TestItem": 2,
+    "WhereClause": 3
+  }
+}

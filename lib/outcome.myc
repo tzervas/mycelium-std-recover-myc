@@ -1,0 +1,20 @@
+// nodule: std.recover.outcome
+// The result sums `Outcome<T, E>` and `Resolution<T, E>` (RFC-0014 §4.1–§4.2).
+//
+// - [`Outcome`] is the input sum: `Ok(T) | Err(E)`.  Errors propagate by default.
+// - [`Resolution`] is the output sum of [`crate::handle`]: `Recovered | Propagated` — there is
+//   **no `Dropped` variant** (I1).  Never-silent is enforced by the type: a handler cannot
+//   express "discard the error" using this sum.
+// @summary: best-effort transpilation via mycelium-transpile (M-873). Declared,
+// unvalidated — no Mycelium parser/typechecker confirms this output; see the
+// accompanying .gap.json for every construct this pass could not express.
+nodule std.recover.outcome;
+
+// The input result sum `Ok(T) | Err(E)` (RFC-0014 §4.1).
+//
+// Errors propagate by default — there is no silent unwinding; an `Err` must be explicitly acted
+// on by a recovery policy or it continues to surface.
+//
+// This is the **input** type to [`crate::handle`] and `crate::recover`.  The `E` error payload
+// should carry a [`Diag`] diagnostic record per FR-R5.
+pub type Outcome[T, E] = Ok(T) | Err(E);

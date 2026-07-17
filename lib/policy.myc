@@ -1,0 +1,29 @@
+// nodule: std.recover.policy_kw
+// The **reified, content-addressed recovery policy** (RFC-0014 §4.4; RFC-0005 pattern; ADR-006).
+//
+// A `RecoveryPolicy` is an `on <ErrorClass> => <RecoveryAction>` map.  Its identity is its
+// **content address** (`PolicyRef` = `ContentHash`; RFC-0001 §4.6 / ADR-003) — a BLAKE3 hash
+// over the canonical, sorted rules.  This makes every recovered/re-propagated outcome answerable
+// to *"which policy acted on this error, and what does it do?"* (C3 / EXPLAIN-able).
+//
+// # Content-hash validity (banked guard #5)
+//
+// Inputs that canonicalize ambiguously must be rejected **before** hashing.  The only inputs
+// here are class names (resolved through the registry — never raw strings, X1) and action
+// parameters (integers / strings / `EffectKind` / **stable serializations of fallback values**).
+//
+// Fallback values are serialized with `serde_json::to_vec` (the `T: serde::Serialize` bound),
+// which is deterministic for a given type and stable across Rust versions.  `Debug` is **not**
+// used for hashing — it is not a stable serialization format and can vary across implementations
+// or compiler versions, which would make two structurally-equal policies hash differently
+// (banked guard #5 violation).  On a serialization error `policy_ref` returns
+// `Err(PolicyHashError)` — it never silently skips a value (which would make two different
+// fallback values collide on the same hash).
+// @summary: best-effort transpilation via mycelium-transpile (M-873). Declared,
+// unvalidated — no Mycelium parser/typechecker confirms this output; see the
+// accompanying .gap.json for every construct this pass could not express.
+nodule std.recover.policy_kw;
+
+// EXPLAIN (L2-B/DN-124): Declared co-include of batch-sibling type surface (homes: std.recover.registry) so single-file oracle is self-contained — not a language `use` identity, not a short-form path collapse (M-1084 full path retained as provenance). Transitive type deps in the same batch are co-included. G2/VR-5.
+type ClassName = ClassName(Bytes);
+type UnknownClass = UnknownClass(Bytes);
